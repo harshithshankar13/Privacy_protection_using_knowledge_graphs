@@ -22,8 +22,9 @@ def hello():
         return response
 
     jsonResp = {'jack': 4098, 'sape': 4139}
+    
     print(request.args.get("url"))
-    #print(request.form['url'])
+
     return jsonify(request.url)
 
 if __name__ == "__main__":  
