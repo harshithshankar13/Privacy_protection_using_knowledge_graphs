@@ -1,0 +1,15 @@
+{
+    "name": "privacy Extensions",
+    "description" : "user data privary extension",
+    "version": "1.0",
+    "manifest_version": 2,
+    "browser_action": {
+      "default_popup": "popup.html",
+      "default_icon": "hello_extensions.png"
+    },
+    "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest" ],
+    "background":{
+      "scripts":["background.js"]
+    },
+    "content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'"
+}
