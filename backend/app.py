@@ -1,4 +1,7 @@
 from flask import Flask, request, jsonify, after_this_request
+import tldextract   # to extract the domain name from url
+
+from controller.alexa import alexa
 
 app = Flask(__name__)
 
@@ -6,24 +9,22 @@ app = Flask(__name__)
 def index():
     return "privary matters"
 
-@app.route('/getUrl', methods=["POST","GET"])
-def getUrl():
-    if request.method == "POST":
-        url = request.form["url"]
-        return f"<h1>{request.url}<h1>"
-    else:
-        return f"<h1>{request.url}<h1>"
-
-@app.route('/hello', methods=['GET'])
-def hello():
+@app.route('/privacyMetric', methods=['GET'])
+def privacyMetric():
     @after_this_request
     def add_header(response):
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
-    jsonResp = {'jack': 4098, 'sape': 4139}
-    
-    print(request.args.get("url"))
+    # get domain name from url
+    url = request.args.get("url")
+    urlInfo = tldextract.extract(url)
+    domain = urlInfo.domain +'.' + urlInfo.suffix
+    print(domain)
+
+    # get domain information using alexa api
+    com_info = alexa(domain)
+    print("alexa: ", com_info)
 
     return jsonify(request.url)
 
