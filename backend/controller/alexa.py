@@ -18,11 +18,36 @@ def alexa(domain):
     # make get request
     res = requests.get('https://awis.api.alexa.com/api?Action=UrlInfo&ResponseGroup=SiteData,Rank,UsageStats,Categories,AdultContent&Url='+domain, headers=header)
     
-    # convert response xml into json
+    # convert response xml into dict
     res_dict = xmltodict.parse(res.text)
-    res_json = json.dumps(res_dict)
+    #res_json = json.dumps(res_dict)
 
-    return res_json
+    # call awis_json_parser
+    #awis_json_parser_pp(res_dict)
 
+    return awis_json_parser_pp(res_dict)
 
+# custom function which takes all the releant information from the Alexa web information response json
+def awis_json_parser_pp(awis_json_m):
+
+    # contains all the results
+    results = awis_json_m['Awis']['Results']
     
+    ContentData = results['Result']['Alexa']['ContentData']
+    companyName = ContentData['DataUrl']
+    CompanyTitle = ContentData['SiteData']['Title']
+    CompanyDescription = ContentData['SiteData']['Description']
+    hasAdultContent = ContentData['AdultContent']
+
+    CompanyCategory = results['Result']['Alexa']['Related']
+    companyType = CompanyCategory['Categories']['CategoryData'][0]['Title']
+    companyLocation = CompanyCategory['Categories']['CategoryData'][1]['Title']
+
+    usageStats = results['Result']['Alexa']['TrafficData']
+    websiteRank = usageStats['Rank']
+
+    #@@todo use data - alexa gives the usage statistic using 3 months, 1 months, 7 days and 1 day of analysis
+
+    print(companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyLocation, companyType, websiteRank)
+
+    return companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyLocation, companyType, websiteRank
