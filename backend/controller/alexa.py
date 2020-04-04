@@ -30,24 +30,42 @@ def alexa(domain):
 # custom function which takes all the releant information from the Alexa web information response json
 def awis_json_parser_pp(awis_json_m):
 
+    companyName = CompanyTitle = CompanyDescription = hasAdultContent = companyType = websiteMainActivity = websiteRank = 'NaN'
+
     # contains all the results
-    results = awis_json_m['Awis']['Results']
+    Awis = awis_json_m.get('Awis') 
+    if Awis != None:
+        Results = Awis.get('Results')
+
+        if Results != None:
+            Result = Results.get('Result')
+            if Result != None:
+                Alexa = Result.get('Alexa')
+                if Alexa != None:
+                    ContentData = Alexa.get('ContentData')
+                    if ContentData != None:
+                        companyName = ContentData.get('DataUrl') or 'NaN'
+                        hasAdultContent = ContentData.get('AdultContent') or 'NaN'
+                        SiteData = ContentData.get('SiteData')
+                        if SiteData != None:
+                            CompanyTitle = SiteData.get('Title') or 'NaN'
+                            CompanyDescription = SiteData.get('Description') or 'NaN'
+                            
+
+                    CompanyCategory = Alexa.get('Related')
+                    if CompanyCategory != None:
+                        Categories = CompanyCategory.get('Categories') 
+                        if Categories != None:
+                            CategoryData = Categories.get('CategoryData')
+                            if CategoryData != None:
+                                companyType = CategoryData[0].get('Title') or 'NaN'
+                                websiteMainActivity = CategoryData[1].get('Title') or 'NaN'
     
-    ContentData = results['Result']['Alexa']['ContentData']
-    companyName = ContentData['DataUrl']
-    CompanyTitle = ContentData['SiteData']['Title']
-    CompanyDescription = ContentData['SiteData']['Description']
-    hasAdultContent = ContentData['AdultContent']
 
-    CompanyCategory = results['Result']['Alexa']['Related']
-    companyType = CompanyCategory['Categories']['CategoryData'][0]['Title']
-    companyLocation = CompanyCategory['Categories']['CategoryData'][1]['Title']
-
-    usageStats = results['Result']['Alexa']['TrafficData']
-    websiteRank = usageStats['Rank']
+                    usageStats = Alexa.get('TrafficData')
+                    if usageStats != None:
+                        websiteRank = usageStats.get('Rank') or 'NaN'
 
     #@@todo use data - alexa gives the usage statistic using 3 months, 1 months, 7 days and 1 day of analysis
 
-    print(companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyLocation, companyType, websiteRank)
-
-    return companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyLocation, companyType, websiteRank
+    return companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyType, websiteMainActivity, websiteRank

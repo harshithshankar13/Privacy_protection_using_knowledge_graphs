@@ -11,6 +11,7 @@ import tldextract   # to extract the domain name from url
 
 import controller.alexa as alexa
 import controller.blazeGraph as blazegraph
+import controller.dbpedia as dbpedia
 
 app = Flask(__name__)
 
@@ -20,6 +21,8 @@ def index():
 
 @app.route('/privacyMetric', methods=['GET'])
 def privacyMetric():
+    blazegraph.baseRules()
+
     @after_this_request
     def add_header(response):
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -31,19 +34,34 @@ def privacyMetric():
     domain = urlInfo.domain +'.' + urlInfo.suffix
     print(domain)
 
-    #@@ get complete URL 
-    #@@ check domain is present in the our graph
-    objectIsPresent = blazegraph.checkForObject(domain)
+    # check domain is present in the our graph
+    objectIsPresent = blazegraph.checkForSubject(domain)
 
+    # if not present, add info to that graph
+    isPresentInDBPedia = False
     # get domain information using alexa api
     if objectIsPresent == False:
-        # com_info = alexa(domain)
-        print(alexa.alexa(domain))
-        # print("alexa: ", com_info)
+        comp_info = alexa.alexa(domain)
+        
+        # to add create info into rdf.
+        blazegraph.add_companyInfo(comp_info)
 
-        #@@ if not, add info to that graph
-        #@@ to add create info into rdf.
+        # delete if NaN is present
+        blazegraph.deleteNaN()
 
+        # get complete URL and connect with DBPedia
+        # check info is present in DBPedia
+        isPresentInDBPedia = dbpedia.IsInfoInDBPedia(comp_info[0])  
+    else:
+        # get company information from our triple store
+        blazegraph.select(subject_m=domain, predicate_m = 'hasAdultContent')
+
+    if isPresentInDBPedia:
+        # get company name 
+        companyTitle = blazegraph.getCompanyName(domain)
+        #companyNameInDBPedia = "http://dbpedia.org/page/" + "Google"#comp_info
+        
+        blazegraph.sameAs(domain, companyTitle)
 
     return jsonify(request.url)
 

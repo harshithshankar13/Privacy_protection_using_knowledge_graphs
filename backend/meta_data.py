@@ -1,0 +1,1 @@
+blazeGraphURL = "http://192.168.43.134:9999/blazegraph/sparql"
