@@ -10,7 +10,7 @@ function sendURL(tabId, changeInfo, tab){
     console.log(tabId);
     console.log(tab.url);
     // send url to server
-    $.getJSON('http://127.0.0.1:5000/privacyMetric', {url:tab.url} ,function (data, textStatus, jqXHR){
+    $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url} ,function (data, textStatus, jqXHR){
       $('p').append(data.firstName);
-  });
+    });
 }

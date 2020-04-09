@@ -1,7 +1,7 @@
 from SPARQLWrapper import SPARQLWrapper, JSON , POST, DIGEST
 
 # create sparql instance
-sparql = SPARQLWrapper("http://192.168.43.134:9999/blazegraph/sparql")
+sparql = SPARQLWrapper("http://localhost:9999/blazegraph/sparql")
 
 # @@ add basic owl such as company is class 
 def baseRules():
@@ -54,7 +54,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { pp:"""+ subject_m +""" ?p ?o ;   }
+                GRAPH pp:company_information { pp:"""+ subject_m +""" ?p ?o .  }
             } 
         """)
         result = sparql.query().convert()
@@ -66,7 +66,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { ?s pp:"""+ predicate_m +""" ?o ;   }
+                GRAPH pp:company_information { ?s pp:"""+ predicate_m +""" ?o .  }
             } 
         """)
         result = sparql.query().convert()
@@ -78,7 +78,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { ?s ?p pp:"""+ object_m +""" ;   }
+                GRAPH pp:company_information { ?s ?p pp:"""+ object_m +""".   }
             } 
         """)
         result = sparql.query().convert()
@@ -90,7 +90,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { pp:"""+ subject_m +""" ?p pp:"""+ object_m +""" ;   }
+                GRAPH pp:company_information { pp:"""+ subject_m +""" ?p pp:"""+ object_m +""" .   }
             } 
         """)
         result = sparql.query().convert()
@@ -102,7 +102,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { ?s pp:"""+ predicate_m +""" pp:"""+ object_m +""" ;   }
+                GRAPH pp:company_information { ?s pp:"""+ predicate_m +""" pp:"""+ object_m +""" .   }
             } 
         """)
         result = sparql.query().convert()
@@ -114,7 +114,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
             select * where{
-                GRAPH pp:company_information { pp:"""+ subject_m +""" pp:"""+ predicate_m +""" ?o ;   }
+                GRAPH pp:company_information { pp:"""+ subject_m +""" pp:"""+ predicate_m +""" ?o .  }
             } 
         """)
         result = sparql.query().convert()
@@ -122,6 +122,21 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         for b in result['results']['bindings']:
             print( b['o']['value'])
     
+    return result
+
+def select_all():
+    sparql.setQuery("""
+            prefix pp: <http://pp.org/>
+            select * where{
+                GRAPH pp:company_information { ?s ?p ?o.   }
+            } 
+        """)
+    sparql.setReturnFormat(JSON)
+    result = sparql.query().convert()
+    
+    for b in result['results']['bindings']:
+        print(b['s']['value'], b['p']['value'], b['o']['value'])
+
     return result
 
 def add_companyInfo(compInfo):
@@ -161,7 +176,7 @@ def checkForSubject(companyName):
 
     sparql.setReturnFormat(JSON)
     result = sparql.query().convert()
-     
+    print("subject:" ,result["boolean"])
     return result["boolean"] 
     
 
@@ -211,7 +226,7 @@ def deleteUsingSub(subject):
         prefix pp: <http://pp.org/>
 
         DELETE {
-          GRAPH pp:company_information { pp:netflix.com ?p ?o . } }
+          GRAPH pp:company_information { pp:"""+subject +""" ?p ?o . } }
 			where
 			{
 			pp:"""+ subject +""" ?p ?o .

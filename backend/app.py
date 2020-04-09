@@ -17,12 +17,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "privary matters"
+    blazegraph.baseRules()
+    return "privary matters :) \n The basic rules are set in your RDF Triple store."
 
 @app.route('/privacyMetric', methods=['GET'])
 def privacyMetric():
-    blazegraph.baseRules()
-
+    
     @after_this_request
     def add_header(response):
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -48,22 +48,34 @@ def privacyMetric():
 
         # delete if NaN is present
         blazegraph.deleteNaN()
-
+        
         # get complete URL and connect with DBPedia
         # check info is present in DBPedia
-        isPresentInDBPedia = dbpedia.IsInfoInDBPedia(comp_info[0])  
+        isPresentInDBPedia = dbpedia.IsInfoInDBPedia(comp_info[1])  
+        print("isPresentInDBPedia:", isPresentInDBPedia)
     else:
         # get company information from our triple store
-        blazegraph.select(subject_m=domain, predicate_m = 'hasAdultContent')
+        blazegraph.select(subject_m=domain)
 
     if isPresentInDBPedia:
+        print("same")
         # get company name 
         companyTitle = blazegraph.getCompanyName(domain)
-        #companyNameInDBPedia = "http://dbpedia.org/page/" + "Google"#comp_info
         
         blazegraph.sameAs(domain, companyTitle)
 
     return jsonify(request.url)
+
+@app.route('/getRDF', methods=['GET','POST'])
+def getRDF():
+    print("RDF")
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
+    res = blazegraph.select_all()
+    return jsonify(res)
 
 if __name__ == "__main__":  
     app.run(debug=True)
