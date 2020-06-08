@@ -18,6 +18,9 @@ def alexa(domain):
     # make get request
     res = requests.get('https://awis.api.alexa.com/api?Action=UrlInfo&ResponseGroup=SiteData,Rank,UsageStats,Categories,AdultContent&Url='+domain, headers=header)
     
+    # testing @@
+    #print("Result &&& : ", res.text)
+
     # convert response xml into dict
     res_dict = xmltodict.parse(res.text)
     #res_json = json.dumps(res_dict)
@@ -36,7 +39,7 @@ def awis_json_parser_pp(awis_json_m):
     Awis = awis_json_m.get('Awis') 
     if Awis != None:
         Results = Awis.get('Results')
-
+        
         if Results != None:
             Result = Results.get('Result')
             if Result != None:
@@ -50,6 +53,7 @@ def awis_json_parser_pp(awis_json_m):
                         if SiteData != None:
                             CompanyTitle = SiteData.get('Title') or 'NaN'
                             CompanyDescription = SiteData.get('Description') or 'NaN'
+                            websiteCreated = SiteData.get('OnlineSince') or 'NaN'
                             
 
                     CompanyCategory = Alexa.get('Related')
@@ -68,4 +72,4 @@ def awis_json_parser_pp(awis_json_m):
 
     #@@todo use data - alexa gives the usage statistic using 3 months, 1 months, 7 days and 1 day of analysis
 
-    return companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyType, websiteMainActivity, websiteRank
+    return companyName, CompanyTitle, CompanyDescription, hasAdultContent, companyType, websiteMainActivity, websiteRank, websiteCreated

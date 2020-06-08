@@ -155,7 +155,8 @@ def add_companyInfo(compInfo):
             			  pp:hasAdultContent pp:""" + compInfo[3] +""";
             			  pp:websiteType \""""+ compInfo[4] +"""\";
                           pp:websiteMainActivity \""""+ compInfo[5] +"""\";
-            			  pp:rank \"""" + compInfo[6] +"""\"^^xsd:double .
+            			  pp:rank \"""" + compInfo[6] +"""\"^^xsd:double ;
+                          pp:onlineSince \"""" + compInfo[7].strftime("%m/%d/%Y, %H:%M:%S") + """\"^^xsd:date .
             } 
             }   
             """)
@@ -164,6 +165,49 @@ def add_companyInfo(compInfo):
     result = sparql.query()
 
     print("Information about company added.")
+
+# add company location 
+def addCompanyLocation(m_domain, m_location):
+    sparql.setMethod('POST')
+
+    sparql.setQuery("""
+        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+        prefix pp: <http://pp.org/>
+
+        INSERT DATA{
+          GRAPH pp:company_information {
+                    pp:""" + m_domain + """ pp:location <""" + m_location + """>.
+            } 
+            }   
+            """)
+    sparql.setReturnFormat(JSON)
+
+    result = sparql.query()
+
+    print("Information about company location is added.")
+
+
+# add company website created date
+def addCompanyCreatedDate(m_domain, m_date):
+    sparql.setMethod('POST')
+
+    sparql.setQuery("""
+        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+        prefix pp: <http://pp.org/>
+
+        INSERT DATA{
+          GRAPH pp:company_information {
+                    pp:""" + m_domain + """ pp:onlineSince <""" + m_date + """>.
+            } 
+            }   
+            """)
+    sparql.setReturnFormat(JSON)
+
+    result = sparql.query()
+
+    print("Information about website created date is added.")
 
 # check if the data already exist in our graph
 def checkForSubject(companyName):
