@@ -4,13 +4,13 @@ def IsInfoInDBPedia(subject):
     url = 'https://dbpedia.org/sparql'
 
     query = """
-        PREFIX res: <http://dbpedia.org/resource/>
+        PREFIX dbr: <http://dbpedia.org/resource/>
         prefix dbo: <http://dbpedia.org/ontology/>
 
         ASK 
         where 
         {
-            res:"""+ subject +""" ?p ?o.
+            dbr:"""+ subject +""" ?p ?o.
         }
         """
 

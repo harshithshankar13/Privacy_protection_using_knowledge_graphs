@@ -9,6 +9,7 @@ Apenx:
 from flask import Flask, request, jsonify, after_this_request
 import tldextract   # to extract the domain name from url
 import whois
+import geocoder
 
 import controller.alexa as alexa
 import controller.blazeGraph as blazegraph
@@ -30,7 +31,20 @@ def privacyMetric():
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
-    # get domain name from url
+    # get user location from userLocation ======
+    userLocationLat = request.args.get("userLocationLat")
+    userLocationLong = request.args.get("userLocationLong")
+    print(userLocationLat)
+    print(userLocationLong)
+
+    g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
+    print(g.json['country'])
+    userInfo = g.json['country']
+    # check user's country is present in the dbpedia
+    if dbpedia.IsInfoInDBPedia(userInfo):
+        userInfo = 'http://dbpedia.org/resource/' + userInfo + '"'
+
+    # get domain name from url ======= 
     url = request.args.get("url")
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
@@ -38,9 +52,6 @@ def privacyMetric():
 
     # check domain is present in the our graph
     objectIsPresent = blazegraph.checkForSubject(domain)
-
-    # @@forTesting
-    objectIsPresent = False
 
     # if not present, add info to that graph
     isPresentInDBPedia = False
@@ -68,34 +79,36 @@ def privacyMetric():
         # check info is present in DBPedia
         isPresentInDBPedia = dbpedia.IsInfoInDBPedia(comp_info[1])  
         print("isPresentInDBPedia:", isPresentInDBPedia)
+        
+        if isPresentInDBPedia:
+            print("same")
+            # get company name 
+            companyTitle = blazegraph.getCompanyName(domain)
+            blazegraph.sameAs(domain, companyTitle)
+
+            # get company location information from dbpedia
+            companyLoc = dbpedia.getCompanyLocation(companyTitle)
+        else:
+            # get website domain reg. location using whois
+            websiteDomainCountry = websiteInfoFromWhoIs.country
+            websiteDomainState = websiteInfoFromWhoIs.state
+            companyLoc = websiteDomainState + ", " + websiteDomainCountry
+
+        # get company information from dbpedia
+        comp_info.append(companyLoc)
+        blazegraph.addCompanyLocation(domain, comp_info[8])
+        print("companyLoc: ", comp_info[8])
+        # --------
     else:
         # get company information from our triple store
-        blazegraph.select(subject_m=domain)
-
-    if isPresentInDBPedia:
-        print("same")
-        # get company name 
-        companyTitle = blazegraph.getCompanyName(domain)
-        blazegraph.sameAs(domain, companyTitle)
-
-        # get company location information from dbpedia
-        companyLoc = dbpedia.getCompanyLocation(companyTitle)
-    else:
-        # get website domain reg. location using whois
-        websiteDomainCountry = websiteInfoFromWhoIs.country
-        websiteDomainState = websiteInfoFromWhoIs.state
-        companyLoc = websiteDomainState + ", " + websiteDomainCountry
-
-    # get company information from dbpedia
-    comp_info[8] = companyLoc
-    blazegraph.addCompanyLocation(domain, comp_info[8])
-    print("companyLoc: ", comp_info[8])
-    # --------
+        comp_info = blazegraph.getCompanyInfoInFormat(subject_m=domain)
+        print("Company's information: ",comp_info)
 
     # get privacy score based on company Info @@to-do send this data to the client
-    privacyScore = privacyMetrics.calculatePrivacyScore(comp_info)
+    privacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
+    print("privacyScore :", privacyScore)
 
-    return jsonify(request.url)
+    return jsonify({'privacyScore': privacyScore})
 
 @app.route('/getRDF', methods=['GET','POST'])
 def getRDF():

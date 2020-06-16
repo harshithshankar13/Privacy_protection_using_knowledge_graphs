@@ -6,11 +6,29 @@ document.head.appendChild(imported);
 chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
-    console.log(changeInfo.url);
-    console.log(tabId);
-    console.log(tab.url);
-    // send url to server
-    $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url} ,function (data, textStatus, jqXHR){
-      $('p').append(data.firstName);
+  window.lat = 0; 
+  window.longi = 0;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position)
+    {
+      console.log(position.coords.latitude);
+      lat = position.coords.latitude;
+      console.log(position.coords.longitude);
+      longi = position.coords.longitude;
+      
+        // send url to server
+        $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocationLat:lat, userLocationLong:longi}, function (data, textStatus, jqXHR){
+        console.log(data)  ;
+        $('p').append(data);
+       });
     });
+  
+  } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+  }
+
+  // // send url to server
+  // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
+  //   $('p').append(data.firstName);
+  // });
 }

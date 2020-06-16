@@ -50,6 +50,8 @@ def baseRules():
 def select(subject_m=None, predicate_m=None, object_m=None):
     sparql.setReturnFormat(JSON)
 
+    companyInfo = [subject_m]
+
     if subject_m != None and predicate_m == None and object_m == None:
         sparql.setQuery("""
             prefix pp: <http://pp.org/>
@@ -61,6 +63,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print( b['p']['value'], b['o']['value'])
+            companyInfo.append(b['o']['value'])
 
     elif predicate_m != None and subject_m == None and object_m == None:
         sparql.setQuery("""
@@ -73,6 +76,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print(b['s']['value'], b['o']['value'])
+            companyInfo.append(b['o']['value'])
 
     elif object_m != None and predicate_m == None and subject_m == None:
         sparql.setQuery("""
@@ -85,6 +89,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print(b['s']['value'], b['p']['value'])
+            companyInfo.append(b['o']['value'])
 
     elif object_m != None and subject_m != None and predicate_m == None:
         sparql.setQuery("""
@@ -97,6 +102,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print(b['p']['value'])
+            companyInfo.append(b['p']['value'])
 
     elif predicate_m != None and object_m != None and subject_m == None:
         sparql.setQuery("""
@@ -109,6 +115,7 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print(b['s']['value'])
+            companyInfo.append(b['s']['value'])
 
     elif predicate_m != None and subject_m != None and object_m == None:
         sparql.setQuery("""
@@ -121,8 +128,9 @@ def select(subject_m=None, predicate_m=None, object_m=None):
         
         for b in result['results']['bindings']:
             print( b['o']['value'])
+            companyInfo.append(b['o']['value'])
     
-    return result
+    return companyInfo
 
 def select_all():
     sparql.setQuery("""
@@ -156,7 +164,7 @@ def add_companyInfo(compInfo):
             			  pp:websiteType \""""+ compInfo[4] +"""\";
                           pp:websiteMainActivity \""""+ compInfo[5] +"""\";
             			  pp:rank \"""" + compInfo[6] +"""\"^^xsd:double ;
-                          pp:onlineSince \"""" + compInfo[7].strftime("%m/%d/%Y, %H:%M:%S") + """\"^^xsd:date .
+                          pp:onlineSince \"""" + compInfo[7].strftime("%m/%d/%Y") + """\"^^xsd:date .
             } 
             }   
             """)
@@ -302,3 +310,62 @@ def deleteNaN():
     result = sparql.query().convert()
 
     return True
+
+def getCompanyInfoInFormat(subject_m):
+    sparql.setMethod('POST')
+    
+    sparql.setQuery("""
+        prefix pp: <http://pp.org/>
+
+        CONSTRUCT  {
+           
+              pp:""" + subject_m +""" pp:websiteTitle ?websiteTitle ;
+            			  pp:websiteDescription ?websiteDescription ;
+            			  pp:hasAdultContent ?AdultContent ;
+            			  pp:websiteType ?websiteType;
+                          pp:websiteMainActivity ?websiteMainActivity;
+            			  pp:rank ?rank ;
+                          pp:onlineSince ?onlineSince ;
+                          pp:location ?location .
+                          
+           } 
+  
+    	WHERE
+			{
+              GRAPH pp:company_information {
+            	optional { pp:""" + subject_m +""" pp:websiteTitle ?websiteTitle .}
+                optional {pp:""" + subject_m +""" pp:websiteDescription ?websiteDescription . }
+                optional {pp:""" + subject_m +""" pp:hasAdultContent ?AdultContent . }
+                optional {pp:""" + subject_m +""" pp:websiteType ?websiteType . }
+                optional {pp:""" + subject_m +""" pp:websiteMainActivity ?websiteMainActivity . }
+                optional {pp:""" + subject_m +""" pp:rank ?rank . }
+                optional {pp:""" + subject_m +""" pp:onlineSince ?onlineSince . }
+                optional {pp:""" + subject_m +""" pp:location ?location . }
+                
+            }  }
+            """)  
+
+    sparql.setReturnFormat(JSON)
+    result = sparql.query().convert()
+    
+    companyInfo = [subject_m,None, None, None, None, None, None, None, None]
+    # print(result)
+    for b in result['results']['bindings']:
+        if b['predicate']['value'] == "http://pp.org/websiteTitle":
+            companyInfo[1] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/websiteDescription":
+            companyInfo[2] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/hasAdultContent":
+            companyInfo[3] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/websiteType":
+            companyInfo[4] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/websiteMainActivity":
+            companyInfo[5] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/rank":
+            companyInfo[6] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/onlineSince":
+            companyInfo[7] = b['object']['value']
+        elif b['predicate']['value'] == "http://pp.org/location":
+            companyInfo[8] = b['object']['value']
+
+    return companyInfo

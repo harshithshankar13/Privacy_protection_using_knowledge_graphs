@@ -7,7 +7,7 @@
       "default_popup": "popup.html",
       "default_icon": "pp.png"
     },
-    "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest" ],
+    "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation"],
     "background":{
       "scripts":["jquery.js","background.js"]
     },
