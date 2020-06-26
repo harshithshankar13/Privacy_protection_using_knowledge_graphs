@@ -79,7 +79,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     # 5. score based on website age ++++++++++++++++++++++++++++++++++++
     # calculate website's age
     if m_websiteInfo[7] != None:
-        websiteAge = datetime.datetime.now() - datetime.datetime.strptime(m_websiteInfo[7], '%m/%d/%Y')
+        websiteAge = datetime.datetime.now() - datetime.datetime.strptime(m_websiteInfo[7], '%d-%b-%Y')
         print("website Age: ", websiteAge)
         # assign privacy score
         if websiteAge <= datetime.timedelta(weeks=52):

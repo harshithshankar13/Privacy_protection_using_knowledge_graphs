@@ -6,6 +6,10 @@ document.head.appendChild(imported);
 chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
+  var url = tab.url;
+  console.log(url)
+  if (url !== undefined && changeInfo.status == "complete" && url != "chrome://newtab/" ) {
+
   window.lat = 0; 
   window.longi = 0;
   if (navigator.geolocation) {
@@ -21,6 +25,7 @@ function sendURL(tabId, changeInfo, tab){
         console.log(data)  ;
         $('p').append(data);
        });
+      
     });
   
   } else { 
@@ -31,4 +36,5 @@ function sendURL(tabId, changeInfo, tab){
   // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
   //   $('p').append(data.firstName);
   // });
+}
 }

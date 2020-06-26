@@ -1,4 +1,5 @@
 from SPARQLWrapper import SPARQLWrapper, JSON , POST, DIGEST
+import datetime
 
 # create sparql instance
 sparql = SPARQLWrapper("http://localhost:9999/blazegraph/sparql")
@@ -164,7 +165,7 @@ def add_companyInfo(compInfo):
             			  pp:websiteType \""""+ compInfo[4] +"""\";
                           pp:websiteMainActivity \""""+ compInfo[5] +"""\";
             			  pp:rank \"""" + compInfo[6] +"""\"^^xsd:double ;
-                          pp:onlineSince \"""" + compInfo[7].strftime("%m/%d/%Y") + """\"^^xsd:date .
+                          pp:onlineSince \"""" + str(datetime.datetime.strptime(compInfo[7], '%d-%b-%Y')) + """\"^^xsd:date .
             } 
             }   
             """)

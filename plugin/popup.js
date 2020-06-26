@@ -12,16 +12,12 @@ $(document).ready(function(){
       chrome.tabs.create({url: url});
     }});
   });
-
-  // $("button.location").click(function() {
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(showPosition);
-  //     print(position.coords.latitude);
-  //     print(position.coords.longitude);
-  //   } else { 
-  //     x.innerHTML = "Geolocation is not supported by this browser.";
-  //   }
-  // });
+  
+  // Facebook login
+    $("button.userProfile").click(function(){
+        chrome.tabs.create({url:"http://localhost:5000/userProfile"});
+    });
 });
+
 
 

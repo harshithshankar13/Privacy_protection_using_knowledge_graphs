@@ -61,8 +61,12 @@ def awis_json_parser_pp(awis_json_m):
                         Categories = CompanyCategory.get('Categories') 
                         if Categories != None:
                             CategoryData = Categories.get('CategoryData')
-                            if CategoryData != None:
-                                if len(CategoryData) > 1:
+                            if type(CategoryData) != list:
+                                if CategoryData != None:
+                                    companyType = CategoryData.get('Title') or 'NaN'
+                                    websiteMainActivity = CategoryData.get('Title') or 'NaN'
+                            else:
+                                if CategoryData != None:
                                     companyType = CategoryData[0].get('Title') or 'NaN'
                                     websiteMainActivity = CategoryData[1].get('Title') or 'NaN'
     

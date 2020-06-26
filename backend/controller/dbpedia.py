@@ -49,13 +49,14 @@ def getCompanyLocation(subject):
         select distinct *
         where{
          optional{res:""" +subject + """ dbo:location ?o. }
-         optional{res:""" +subject + """ dbo:locationCity ?o}
+         optional{res:""" +subject + """ dbo:locationCity ?o.}
         }
         """
 
     response = requests.get(url, params={'format':'json', 'query': query})
     companyLocation = response.json()
 
+    print("companyLocation : ", companyLocation)
     companyLocation = companyLocation['results']['bindings'][0]['o']['value']
 
     return companyLocation
