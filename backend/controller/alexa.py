@@ -1,6 +1,7 @@
 from flask import Blueprint, abort
 import requests 
 import xmltodict, json
+from datetime import datetime
 
 alexa = Blueprint('alexa', __name__,
                         template_folder='templates')
@@ -54,6 +55,9 @@ def awis_json_parser_pp(awis_json_m):
                             CompanyTitle = SiteData.get('Title') or 'NaN'
                             CompanyDescription = SiteData.get('Description') or 'NaN'
                             websiteCreated = SiteData.get('OnlineSince') or 'NaN'
+                            if websiteCreated != 'NaN':
+                                websiteCreated = datetime.strptime(websiteCreated + " 00:00:00", '%d-%b-%Y %H:%M:%S')
+                                websiteCreated = datetime.strftime(websiteCreated, "%Y-%m-%d %H:%M:%S")
                             
 
                     CompanyCategory = Alexa.get('Related')

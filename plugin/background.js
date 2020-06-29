@@ -22,7 +22,7 @@ function sendURL(tabId, changeInfo, tab){
       
         // send url to server
         $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocationLat:lat, userLocationLong:longi}, function (data, textStatus, jqXHR){
-        console.log(data)  ;
+        console.log(data.privacyScore)  ;
         $('p').append(data);
        });
       
@@ -30,11 +30,11 @@ function sendURL(tabId, changeInfo, tab){
   
   } else { 
     x.innerHTML = "Geolocation is not supported by this browser.";
+    }
   }
-
   // // send url to server
   // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
   //   $('p').append(data.firstName);
   // });
-}
+
 }

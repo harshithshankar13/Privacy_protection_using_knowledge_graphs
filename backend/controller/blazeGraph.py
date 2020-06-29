@@ -165,7 +165,7 @@ def add_companyInfo(compInfo):
             			  pp:websiteType \""""+ compInfo[4] +"""\";
                           pp:websiteMainActivity \""""+ compInfo[5] +"""\";
             			  pp:rank \"""" + compInfo[6] +"""\"^^xsd:double ;
-                          pp:onlineSince \"""" + str(datetime.datetime.strptime(compInfo[7], '%d-%b-%Y')) + """\"^^xsd:date .
+                          pp:onlineSince \"""" + str(datetime.datetime.strptime(compInfo[7], '%Y-%m-%d %H:%M:%S')) + """\"^^xsd:date .
             } 
             }   
             """)

@@ -45,10 +45,11 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             privacyScore += 1.0
 
     # 4. score based on website type @@TODO add more companyType +++++++++++++++++++++++++++
-    # get website general type which is before / @@todo chaange this to some generatilation
-    m_websiteInfo[4] = m_websiteInfo[4].split('/')[0] 
-
+    
     if m_websiteInfo[4] != None:
+        # get website general type which is before / @@todo chaange this to some generatilation
+        m_websiteInfo[4] = m_websiteInfo[4].split('/')[0] 
+
         if m_websiteInfo[4] == "Search Engines":
             privacyScore += 0.1
         elif m_websiteInfo[4] == "Shopping":
@@ -79,7 +80,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     # 5. score based on website age ++++++++++++++++++++++++++++++++++++
     # calculate website's age
     if m_websiteInfo[7] != None:
-        websiteAge = datetime.datetime.now() - datetime.datetime.strptime(m_websiteInfo[7], '%d-%b-%Y')
+        websiteAge = datetime.datetime.now() - datetime.datetime.strptime(m_websiteInfo[7], '%Y-%m-%d %H:%M:%S') # 
         print("website Age: ", websiteAge)
         # assign privacy score
         if websiteAge <= datetime.timedelta(weeks=52):

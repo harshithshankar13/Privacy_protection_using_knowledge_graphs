@@ -2,6 +2,7 @@ import requests
 
 def IsInfoInDBPedia(subject):
     url = 'https://dbpedia.org/sparql'
+ 
 
     query = """
         PREFIX dbr: <http://dbpedia.org/resource/>
@@ -15,7 +16,9 @@ def IsInfoInDBPedia(subject):
         """
 
     response = requests.get(url, params={'format':'json', 'query': query})
+    print(response.status_code)
     isPresent = response.json()
+    print(isPresent['boolean'])
 
     return isPresent['boolean']
 
@@ -56,8 +59,11 @@ def getCompanyLocation(subject):
     response = requests.get(url, params={'format':'json', 'query': query})
     companyLocation = response.json()
 
-    print("companyLocation : ", companyLocation)
-    companyLocation = companyLocation['results']['bindings'][0]['o']['value']
+    print("companyLocation : ", companyLocation['results']['bindings'][0])
+    if companyLocation['results']['bindings'][0] != {}: 
+        companyLocation = companyLocation['results']['bindings'][0]['o']['value']
+    else:
+        companyLocation = None
 
     return companyLocation
 

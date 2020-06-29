@@ -10,6 +10,8 @@ from flask import Flask, request, jsonify, after_this_request, render_template
 import tldextract   # to extract the domain name from url
 import whois
 import geocoder
+import pycountry
+from datetime import datetime
 
 import controller.alexa as alexa
 import controller.blazeGraph as blazegraph
@@ -42,7 +44,13 @@ def privacyMetric():
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
-    if domain in ['localhost']:
+    # initialising privacyScore Variable
+    privacyScore = 0
+
+    # flags
+    calledWhois = False
+
+    if domain not in ['localhost.']:
         # get user location from userLocation ======
         userLocationLat = request.args.get("userLocationLat")
         userLocationLong = request.args.get("userLocationLong")
@@ -60,6 +68,7 @@ def privacyMetric():
 
         # check domain is present in the our graph
         objectIsPresent = blazegraph.checkForSubject(domain)
+        comp_info_score = []
 
         # if not present, add info to that graph
         isPresentInDBPedia = False
@@ -72,12 +81,14 @@ def privacyMetric():
             if comp_info[7] == 'NaN':
                 # get expiration date using whois
                 websiteInfoFromWhoIs = whois.whois(domain)
+                print("websiteInfoFromWhoIs:@: ",websiteInfoFromWhoIs)
+                calledWhois = True
                 if isinstance(websiteInfoFromWhoIs.creation_date, list):
                     print("websiteDate1:")
-                    comp_info[7] = websiteInfoFromWhoIs.creation_date[1]
+                    comp_info[7] = datetime.strftime(websiteInfoFromWhoIs.creation_date[1], "%Y-%m-%d %H:%M:%S")
                 else:
                     print("websiteDate2:")
-                    comp_info[7] = websiteInfoFromWhoIs.creation_date
+                    comp_info[7] = datetime.strftime(websiteInfoFromWhoIs.creation_date, "%Y-%m-%d %H:%M:%S")
                     
             # to add create info into rdf.
             blazegraph.add_companyInfo(comp_info)
@@ -87,38 +98,58 @@ def privacyMetric():
             
             # get complete URL and connect with DBPedia
             # check info is present in DBPedia
+            comp_info[1] = comp_info[1].replace('/', '')
+            comp_info[1] = comp_info[1].replace(' ', '_')
             isPresentInDBPedia = dbpedia.IsInfoInDBPedia(comp_info[1])  
             print("isPresentInDBPedia:", isPresentInDBPedia)
             
             if isPresentInDBPedia:
                 print("same")
                 # get company name 
-                companyTitle = blazegraph.getCompanyName(domain)
-                blazegraph.sameAs(domain, companyTitle)
+                #companyTitle = blazegraph.getCompanyName(domain)
+                blazegraph.sameAs(domain, comp_info[1])
 
                 # get company location information from dbpedia
-                companyLoc = dbpedia.getCompanyLocation(companyTitle)
-            else:
+                companyLoc = dbpedia.getCompanyLocation(comp_info[1])
+            
+            if isPresentInDBPedia == False or companyLoc == None:
                 # get website domain reg. location using whois
-                websiteDomainCountry = websiteInfoFromWhoIs.country
-                websiteDomainState = websiteInfoFromWhoIs.state
-                companyLoc = websiteDomainState + ", " + websiteDomainCountry
+                if calledWhois == False:
+                    # get expiration location using whois
+                    websiteInfoFromWhoIs = whois.whois(domain)
+                    
+                websiteDomainCity = websiteInfoFromWhoIs.city
+                if websiteDomainCity != None: 
+                    print("Company location in app @1@: ", websiteInfoFromWhoIs)
+                    companyLoc = websiteDomainCity.replace(" ", "_")
+                else:
+                    websiteDomainCountry = websiteInfoFromWhoIs.country
+                    companyLoc = pycountry.countries.get(alpha_2=websiteDomainCountry)
+                    if companyLoc == None:
+                        companyLoc = "NaN"
+                    else:
+                        companyLoc = companyLoc.name
+                        companyLoc = companyLoc.replace(" ", "_")
 
             # get company information from dbpedia
+            print("Company location in app @@: ", companyLoc)
             comp_info.append(companyLoc)
             blazegraph.addCompanyLocation(domain, comp_info[8])
             print("companyLoc: ", comp_info[8])
+
+            comp_info_score = comp_info
             # --------
         else:
             # get company information from our triple store
             comp_info = blazegraph.getCompanyInfoInFormat(subject_m=domain)
             print("Company's information: ",comp_info)
+            comp_info_score = comp_info
 
         # get privacy score based on company Info @@to-do send this data to the client
         privacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
         print("privacyScore :", privacyScore)
 
-        return jsonify({'privacyScore': privacyScore})
+    return jsonify({'privacyScore': privacyScore})
 
 @app.route('/getRDF', methods=['GET','POST'])
 def getRDF():
@@ -134,6 +165,7 @@ def getRDF():
 @app.route('/userProfile', methods=['GET','POST'])
 def getUserProfile():
     return render_template('userProfile.html')
+    return 'OK'
 
 if __name__ == "__main__":  
     app.run(debug=True)
