@@ -6,6 +6,14 @@ document.head.appendChild(imported);
 chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
+
+ // chrome history
+  chrome.history.search({text: '', maxResults: 10}, function(data) {
+    data.forEach(function(page) {
+        console.log("Page URL",page);
+    });
+});
+
   var url = tab.url;
   console.log(url)
   if (url !== undefined && changeInfo.status == "complete" && url != "chrome://newtab/" ) {

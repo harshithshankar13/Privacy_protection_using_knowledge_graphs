@@ -7,9 +7,9 @@
       "default_popup": "popup.html",
       "default_icon": "pp.png"
     },
-    "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation"],
+    "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation", "history"],
     "background":{
       "scripts":["jquery.js","background.js"]
     },
-    "content_security_policy": "script-src 'self' https://ajax.googleapis.com https://connect.facebook.net/en_US/sdk.js 'sha256-4RMM1+muFrUXcDP1ofmFpeg5ocWvYLZ8lUqmgdf+bvg='; object-src 'self'"
+    "content_security_policy": "script-src 'self' https://ajax.googleapis.com ; object-src 'self'"
 }
