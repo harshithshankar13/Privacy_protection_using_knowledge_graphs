@@ -20,23 +20,23 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     if m_websiteInfo[6] != None:
         if float(m_websiteInfo[6]) > 100000:
             privacyScore += 1 # 100% privacy score
-        elif float(m_websiteInfo[6]) > 75000 and m_websiteInfo[6] < 100000:
+        elif float(m_websiteInfo[6]) > 75000 and float(m_websiteInfo[6]) < 100000:
             privacyScore += 0.9
-        elif float(m_websiteInfo[6]) > 50000 and m_websiteInfo[6] < 75000:
+        elif float(m_websiteInfo[6]) > 50000 and float(m_websiteInfo[6]) < 75000:
             privacyScore += 0.8
-        elif float(m_websiteInfo[6]) > 25000 and m_websiteInfo[6] < 50000:
+        elif float(m_websiteInfo[6]) > 25000 and float(m_websiteInfo[6]) < 50000:
             privacyScore += 0.7
-        elif float(m_websiteInfo[6]) > 10000 and m_websiteInfo[6] < 25000:
+        elif float(m_websiteInfo[6]) > 10000 and float(m_websiteInfo[6]) < 25000:
             privacyScore += 0.6
-        elif float(m_websiteInfo[6]) > 7500 and m_websiteInfo[6] < 10000:
+        elif float(m_websiteInfo[6]) > 7500 and float(m_websiteInfo[6]) < 10000:
             privacyScore += 0.5
-        elif float(m_websiteInfo[6]) > 5000 and m_websiteInfo[6] < 7500:
+        elif float(m_websiteInfo[6]) > 5000 and float(m_websiteInfo[6]) < 7500:
             privacyScore += 0.4
-        elif float(m_websiteInfo[6]) > 3000 and m_websiteInfo[6] < 5000:
+        elif float(m_websiteInfo[6]) > 3000 and float(m_websiteInfo[6]) < 5000:
             privacyScore += 0.3
-        elif float(m_websiteInfo[6]) > 1000 and m_websiteInfo[6] < 3000:
+        elif float(m_websiteInfo[6]) > 1000 and float(m_websiteInfo[6]) < 3000:
             privacyScore += 0.2
-        elif float(m_websiteInfo[6]) > 500 and m_websiteInfo[6] < 1000:
+        elif float(m_websiteInfo[6]) > 500 and float(m_websiteInfo[6]) < 1000:
             privacyScore += 0.1
 
     # 3. score based on adult content ++++++++++++++++++++++++++++++++++++

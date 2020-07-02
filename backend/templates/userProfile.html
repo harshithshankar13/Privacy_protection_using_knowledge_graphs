@@ -2,70 +2,51 @@
   <head>
     <title>Save URL</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="popup.js"></script>
+    
+    <script src="userProfile.js"></script> 
+    <script> 
+      function linkedinLogin(){
+
+        $.ajax({
+          method: "GET",
+        headers: {
+    'Access-Control-Allow-Credentials' : true,
+    'Access-Control-Allow-Origin':'*',
+    'Access-Control-Allow-Methods':'GET',
+    'Access-Control-Allow-Headers':'application/json'
+  },
+        url: "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={77mpeeyrvnkjaa}&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&state=fooobar&scope=r_liteprofile%20r_emailaddress%20w_member_social",
+        jsonpCallback: 'jsonp',
+        // data: { 
+        //   response_type: 'code',
+        //   client_id: '77mpeeyrvnkjaa', 
+        //   redirect_uri: 'http://localhost:5000/userProfile',
+        //   scope: 'r_emailaddress'},
+          success: function(data) {
+            //alert(data.success);
+            }
+        });
+      }
+
+
+    function linkedinLogin1(theUrl, callback)
+    {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET",'https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={77mpeeyrvnkjaa}&redirect_uri=http%3A%2F%2F127.0.0.1:5000/userProfile&state=fooobar&scope=r_liteprofile%20r_emailaddress%20w_member_social', true); // true for asynchronous 
+    xmlHttp.send(null);
+    }
+    </script>
+
   </head>
 
   <body bgcolor="#dde6eb">
+    <button onclick="linkedinLogin()" style="color:#000000;background-color:#a6cfdf;" class="LILogin" id="LILogin"> LinkedInLogin</button> 
 
-    <script>
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId            : '1922269284570735',
-          autoLogAppEvents : true,
-          xfbml            : true,
-          version          : 'v7.0'
-        });
-
-        FB.getLoginStatus(function(response) {
-          if(response.status === "connected"){
-             document.getElementById('fbStatus').innerHTML = "Connected to Facebook";
-          }
-          else if(response.status === "not_authorized")
-          {
-            document.getElementById('fbStatus').innerHTML = "Facebook is not connected";
-          }
-          else if(response.status === "unknown")
-          {
-            document.getElementById('fbStatus').innerHTML = "You are not loggin to facebook";
-          }
-        });
-        }; 
- 
-
-    function FBlogin()
-        {
-          FB.login(function(response){
-            document.getElementById('fbStatus').innerHTML = response.status;
-          if(response.status === "connected"){
-             document.getElementById('fbStatus').innerHTML = "Connected to Facebook";
-             document.getElementById('fbToken').innerHTML = response.authResponse.accessToken;
-             document.getElementById("FBLIButton").disabled = true;
-
-             // get user details
-             FB.api(
-                '/me',
-                'GET',
-                {"fields":"first_name,birthday,email"},
-                function(response) {
-                  document.getElementById('fbToken').innerHTML = JSON.stringify(response) ;
-                });
-          }
-          else if(response.status === "not_authorized")
-          {
-            document.getElementById('fbStatus').innerHTML = "Facebook is not connected";
-          }
-          else if(response.status === "unknown")
-          {
-            document.getElementById('fbStatus').innerHTML = "You are not loggin to facebook";
-          }
-        }, {scope: 'user_birthday,public_profile, email', return_scopes: true});
-      };
-    </script>
-    <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
-    
-    <button onclick="FBlogin()" id='FBLIButton'> Facebook Login </button> 
-    
-    <div id="fbStatus"> </div>
-    <div id="fbToken"> </div>
+    <div id="LIStatus"> </div>
+    <div id="LIToken"> </div>
 </body>
 </html>

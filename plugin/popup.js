@@ -13,9 +13,32 @@ $(document).ready(function(){
     }});
   });
   
-  // Facebook login
+  // Linked login
     $("button.userProfile").click(function(){
-        chrome.tabs.create({url:"http://localhost:5000/userProfile"});
+      // $.ajax({
+      //   method: "GET",
+      // headers: {
+      //     'Access-Control-Allow-Credentials' : true,
+      //     'Access-Control-Allow-Origin':'*',
+      //     'Access-Control-Allow-Methods':'GET',
+      //     'Access-Control-Allow-Headers':'application/json'
+      // },
+      // url: "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=77mpeeyrvnkjaa&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&state=fooobar&scope=r_liteprofile%20r_emailaddress",
+      // // data: { 
+      // //   response_type: 'code',
+      // //   client_id: '77mpeeyrvnkjaa', 
+      // //   redirect_uri: 'http://localhost:5000/userProfile',
+      // //   scope: 'r_emailaddress'},
+      //   success: function(data) {
+      //       document.getElementById("LILogIn").innerHTML = data
+      //       // console.log(data)
+      //       //chrome.tabs.create(data);
+      //     }
+      // });
+      
+      // //chrome.tabs.create({url:"http://localhost:5000/userProfile"});
+
+      chrome.tabs.create({url: 'https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=77mpeeyrvnkjaa&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&state=fooobar&scope=r_fullprofile%20r_emailaddress'})
     });
 });
 

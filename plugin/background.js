@@ -21,8 +21,29 @@ function sendURL(tabId, changeInfo, tab){
       longi = position.coords.longitude;
       
         // send url to server
-        $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocationLat:lat, userLocationLong:longi}, function (data, textStatus, jqXHR){
+        $.getJSON('https://www.linkedin.com/oauth/v2/authorization', 
+        {url:tab.url, userLocationLat:lat, userLocationLong:longi}, function (data, textStatus, jqXHR){
         console.log(data.privacyScore)  ;
+        if(data.privacyScore > 0.5)
+        {
+          chrome.browserAction.setIcon({
+            path: 'pp_red.png',
+            //tabId: sender.tab.id
+          });
+        }
+        else if (data.privacyScore > 0.2)
+        {
+          chrome.browserAction.setIcon({
+          path: 'pp_yellow.png',
+          //tabId: sender.tab.id
+        });
+        }
+        else{
+          chrome.browserAction.setIcon({
+            path: 'pp_green.png',
+            //tabId: sender.tab.id
+          });
+        }
         $('p').append(data);
        });
       

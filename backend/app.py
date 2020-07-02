@@ -11,6 +11,7 @@ import tldextract   # to extract the domain name from url
 import whois
 import geocoder
 import pycountry
+import requests
 from datetime import datetime
 
 import controller.alexa as alexa
@@ -164,7 +165,40 @@ def getRDF():
 
 @app.route('/userProfile', methods=['GET','POST'])
 def getUserProfile():
-    return render_template('userProfile.html')
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+        
+    LinkedInAUTHCode = request.args.get('code')
+
+    print(LinkedInAUTHCode)
+
+    res = requests.post("https://www.linkedin.com/oauth/v2/accessToken?grant_type=authorization_code&code="+ LinkedInAUTHCode + "&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&client_id=77mpeeyrvnkjaa&client_secret=loIraKqPvMjE9fOe",
+        headers = {
+                "content-type": "x-www-form-urlencoded"
+        })
+    
+
+    if res.ok:
+        print('Access_token', res.json())
+        linkedInAccessToken = res.json()['access_token']
+        linkedInAccessTokenExpiresIn = res.json()['expires_in'] # @@todo time + expiresIn
+    else:
+        print(res.json())
+
+    res1 = requests.get("https://api.linkedin.com/v2/me",
+        headers = {
+                "Authorization": "Bearer " + linkedInAccessToken,
+                "connection" : "Keep-Alive"
+        })
+
+    if res1.ok:
+        print('Access_token', res1.json())
+    else:
+        print(res1.json())
+
+    #return render_template('userProfile.html')
     return 'OK'
 
 if __name__ == "__main__":  

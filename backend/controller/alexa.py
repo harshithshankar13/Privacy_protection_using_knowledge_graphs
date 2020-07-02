@@ -34,7 +34,7 @@ def alexa(domain):
 # custom function which takes all the releant information from the Alexa web information response json
 def awis_json_parser_pp(awis_json_m):
 
-    companyName = CompanyTitle = CompanyDescription = hasAdultContent = companyType = websiteMainActivity = websiteRank = 'NaN'
+    companyName = CompanyTitle = CompanyDescription = hasAdultContent = companyType = websiteMainActivity = websiteRank = websiteCreated = 'NaN'
 
     # contains all the results
     Awis = awis_json_m.get('Awis') 
