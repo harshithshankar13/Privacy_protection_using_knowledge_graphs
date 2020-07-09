@@ -7,12 +7,26 @@ chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
 
+ // chrome.storage
+
+ // domain visited
+ domain = new URL(tab.url).host  ;
+ console.log("Domain:", domain) ;
+ 
  // chrome history
-  chrome.history.search({text: '', maxResults: 10}, function(data) {
+  var days = 90
+  var startTimeInMicrosec = 1000 * 60 * 60 * 24 * days;
+  var domainVisitCount = 0;
+  chrome.history.search({text: '', startTime : (new Date).getTime() - startTimeInMicrosec, maxResults: 100}, function(data) {
     data.forEach(function(page) {
-        console.log("Page URL",page);
+        if(new URL(page.url).host == domain)
+        {
+          domainVisitCount = domainVisitCount + page.visitCount ;
+        }
     });
-});
+  });
+
+  console.log("domainVisitCount: ",domainVisitCount );
 
   var url = tab.url;
   console.log(url)
@@ -29,8 +43,10 @@ function sendURL(tabId, changeInfo, tab){
       longi = position.coords.longitude;
       
         // send url to server
-        $.getJSON('https://www.linkedin.com/oauth/v2/authorization', 
-        {url:tab.url, userLocationLat:lat, userLocationLong:longi}, function (data, textStatus, jqXHR){
+        // (@@LinkedIN logIn page) $.getJSON('https://www.linkedin.com/oauth/v2/authorization', 
+        $.getJSON('http://localhost:5000/privacyMetric',
+        {url:tab.url, userLocationLat:lat, userLocationLong:longi, domainVisitCount:domainVisitCount}, 
+        function (data, textStatus, jqXHR){
         console.log(data.privacyScore)  ;
         if(data.privacyScore > 0.5)
         {
@@ -61,7 +77,9 @@ function sendURL(tabId, changeInfo, tab){
     x.innerHTML = "Geolocation is not supported by this browser.";
     }
   }
-  // // send url to server
+
+
+  // send url to server - @ redundent
   // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
   //   $('p').append(data.firstName);
   // });

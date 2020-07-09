@@ -40,10 +40,16 @@ def privacyMetric():
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
+    # variable initialise
+    userInfo = {}
+
     # get domain name from url ======= 
     url = request.args.get("url")
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
+
+    # get data from request
+    userInfo['domainVisitCount'] = request.args.get("domainVisitCount")
 
     # initialising privacyScore Variable
     privacyScore = 0
@@ -60,10 +66,10 @@ def privacyMetric():
 
         g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
         print(g.json['country'])
-        userInfo = g.json['country']
+        userInfo['country'] = g.json['country']
         # check user's country is present in the dbpedia
-        if dbpedia.IsInfoInDBPedia(userInfo):
-            userInfo = 'http://dbpedia.org/resource/' + userInfo + '"'
+        if dbpedia.IsInfoInDBPedia(userInfo['country']):
+            userInfo['country']  = 'http://dbpedia.org/resource/' + userInfo['country'] + '"'
 
         print(domain)
 
@@ -152,6 +158,7 @@ def privacyMetric():
 
     return jsonify({'privacyScore': privacyScore})
 
+################################################################################################
 @app.route('/getRDF', methods=['GET','POST'])
 def getRDF():
     print("RDF")
@@ -163,6 +170,8 @@ def getRDF():
     res = blazegraph.select_all()
     return jsonify(res)
 
+
+################################################################################################
 @app.route('/userProfile', methods=['GET','POST'])
 def getUserProfile():
     @after_this_request
