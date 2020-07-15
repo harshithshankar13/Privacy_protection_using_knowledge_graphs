@@ -1,4 +1,5 @@
 $(document).ready(function(){
+  // triples view ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   $("button.viewTriples").click(function(){
     $.ajax({type: "POST",url: 'http://localhost:5000/getRDF', success: function(response){
 
@@ -12,9 +13,16 @@ $(document).ready(function(){
       chrome.tabs.create({url: url});
     }});
   });
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  // User profile ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  $("button.userProfile").click(function(){
+    chrome.tabs.create({'url':chrome.extension.getURL('userProfile.html')});
+  });
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
-  // Linked login
-    $("button.userProfile").click(function(){
+  // Linked login ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    $("button.LInkedInLogin").click(function(){
       // $.ajax({
       //   method: "GET",
       // headers: {
@@ -40,6 +48,8 @@ $(document).ready(function(){
 
       chrome.tabs.create({url: 'https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=77mpeeyrvnkjaa&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&state=fooobar&scope=r_liteprofile%20r_emailaddress'})
     });
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 });
 
 

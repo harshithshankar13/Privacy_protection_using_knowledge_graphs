@@ -6,14 +6,13 @@ document.head.appendChild(imported);
 chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
-
  // chrome.storage
 
  // domain visited
  domain = new URL(tab.url).host  ;
  console.log("Domain:", domain) ;
  
- // chrome history
+ // chrome history ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   var days = 90
   var startTimeInMicrosec = 1000 * 60 * 60 * 24 * days;
   var domainVisitCount = 0;
@@ -28,6 +27,7 @@ function sendURL(tabId, changeInfo, tab){
 
   console.log("domainVisitCount: ",domainVisitCount );
 
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++
   var url = tab.url;
   console.log(url)
   if (url !== undefined && changeInfo.status == "complete" && url != "chrome://newtab/" ) {
@@ -47,7 +47,7 @@ function sendURL(tabId, changeInfo, tab){
         $.getJSON('http://localhost:5000/privacyMetric',
         {url:tab.url, userLocationLat:lat, userLocationLong:longi, domainVisitCount:domainVisitCount}, 
         function (data, textStatus, jqXHR){
-        console.log(data.privacyScore)  ;
+        console.log(data.privacyScore) ;
         if(data.privacyScore > 0.5)
         {
           chrome.browserAction.setIcon({
@@ -70,7 +70,6 @@ function sendURL(tabId, changeInfo, tab){
         }
         $('p').append(data);
        });
-      
     });
   
   } else { 
@@ -78,7 +77,9 @@ function sendURL(tabId, changeInfo, tab){
     }
   }
 
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  
   // send url to server - @ redundent
   // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
   //   $('p').append(data.firstName);

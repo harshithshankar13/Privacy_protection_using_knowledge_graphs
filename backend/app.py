@@ -45,11 +45,12 @@ def privacyMetric():
 
     # get domain name from url ======= 
     url = request.args.get("url")
+    protocol = url.split(':')[0]
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
     # get data from request
-    userInfo['domainVisitCount'] = request.args.get("domainVisitCount")
+    userInfo['domainVisitCount'] = int(request.args.get("domainVisitCount"))
 
     # initialising privacyScore Variable
     privacyScore = 0
@@ -144,12 +145,15 @@ def privacyMetric():
             blazegraph.addCompanyLocation(domain, comp_info[8])
             print("companyLoc: ", comp_info[8])
 
-            comp_info_score = comp_info
+            # add website protocol info to calculate privacy score
+            comp_info.append(protocol)
+            comp_info_score = comp_info 
             # --------
         else:
             # get company information from our triple store
             comp_info = blazegraph.getCompanyInfoInFormat(subject_m=domain)
             print("Company's information: ",comp_info)
+            comp_info.append(protocol)
             comp_info_score = comp_info
 
         # get privacy score based on company Info @@to-do send this data to the client
