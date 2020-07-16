@@ -10,19 +10,38 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     factorsUsed = 0
 
     # score based on website's protocol ++++++++++++++++++++++
-    if m_websiteInfo[9] == "https":
+    if m_websiteInfo[9] == "http":
         factorsUsed += 1
         privacyScore = factorsUsed
     else:
         # 1. score based on location @@ implement ++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        if (m_websiteInfo[8] != None and m_userInfo['country'] != None):
-            factorsUsed += 1
-            websiteDomainLocation = m_websiteInfo[8]
-            print("location mataching : ", m_userInfo['country'], websiteDomainLocation)
-            if m_userInfo['country'] != websiteDomainLocation:
-                print("No connection")
-                privacyScore += 0.8
+        # adding user details location into userProfileLocation list
+        userProfileLocation = []
+        print("test1:", type(m_userInfo['userProfile']))
+        userProfileLocation.append(m_userInfo['userProfile']['nationality'])
+        for edu in m_userInfo['userProfile']['EducationDetails']:
+            userProfileLocation.append(edu['Location'])
+        for prof in m_userInfo['userProfile']['ProfessionalExpirenceDetails']:
+            userProfileLocation.append(prof['Location'])
+        
+        print("userprofileLocationList: ", userProfileLocation)
 
+        websiteDomainLocation = m_websiteInfo[8]
+        if (websiteDomainLocation != None and m_userInfo['websitevisitedcountry'] != None and userProfileLocation is not None):
+            print("location mataching : ", m_userInfo['websitevisitedcountry'], websiteDomainLocation)
+
+            if m_userInfo['websitevisitedcountry'] in userProfileLocation:
+                if m_userInfo['websitevisitedcountry'] == websiteDomainLocation:
+                    factorsUsed += 1
+                    privacyScore += 0
+                elif m_userInfo['websitevisitedcountry'] in userProfileLocation:
+                    factorsUsed += 1
+                    privacyScore += 0.3
+            elif m_userInfo['websitevisitedcountry'] != websiteDomainLocation:
+                print("No connection between websitevisitedcountry")
+                factorsUsed += 1
+                privacyScore += 0.4
+                
         # 2. score based on ranking @ but ranking changes daily in alexa but here rank stored is static +++++++++
         if m_websiteInfo[6] != None:
             factorsUsed += 1

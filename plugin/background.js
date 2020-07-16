@@ -6,7 +6,15 @@ document.head.appendChild(imported);
 chrome.tabs.onUpdated.addListener(sendURL);
 
 function sendURL(tabId, changeInfo, tab){
- // chrome.storage
+  // get user profile from local storage +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      
+    // get user profile/graph from local browser storage  
+    var userProfile ;
+    chrome.storage.sync.get(null, function(result) {
+      console.log('Value currently is ' + JSON.stringify(result));
+      userProfile = JSON.stringify(result) ;
+    });
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
  // domain visited
  domain = new URL(tab.url).host  ;
@@ -44,8 +52,8 @@ function sendURL(tabId, changeInfo, tab){
       
         // send url to server
         // (@@LinkedIN logIn page) $.getJSON('https://www.linkedin.com/oauth/v2/authorization', 
-        $.getJSON('http://localhost:5000/privacyMetric',
-        {url:tab.url, userLocationLat:lat, userLocationLong:longi, domainVisitCount:domainVisitCount}, 
+        $.post('http://localhost:5000/privacyMetric',
+        {url:tab.url, userProfile: userProfile, userLocationLat:lat, userLocationLong:longi, domainVisitCount:domainVisitCount}, 
         function (data, textStatus, jqXHR){
         console.log(data.privacyScore) ;
         if(data.privacyScore > 0.5)

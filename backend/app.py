@@ -12,6 +12,7 @@ import whois
 import geocoder
 import pycountry
 import requests
+import json
 from datetime import datetime
 
 import controller.alexa as alexa
@@ -32,7 +33,7 @@ def index():
     blazegraph.baseRules()
     return "privary matters :) \n The basic rules are set in your RDF Triple store."
 
-@app.route('/privacyMetric', methods=['GET'])
+@app.route('/privacyMetric', methods=['GET', 'POST'])
 def privacyMetric():
     
     @after_this_request
@@ -44,13 +45,18 @@ def privacyMetric():
     userInfo = {}
 
     # get domain name from url ======= 
-    url = request.args.get("url")
+    url = request.form.get("url")
     protocol = url.split(':')[0]
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
     # get data from request
-    userInfo['domainVisitCount'] = int(request.args.get("domainVisitCount"))
+    userInfo['domainVisitCount'] = int(request.form.get("domainVisitCount"))
+
+    # get user profile
+    userProfile = request.form.get("userProfile")
+    userInfo['userProfile'] = json.loads(userProfile)
+    print("UserProfile: ", request.form.get("userProfile"))
 
     # initialising privacyScore Variable
     privacyScore = 0
@@ -60,17 +66,17 @@ def privacyMetric():
 
     if domain not in ['localhost.']:
         # get user location from userLocation ======
-        userLocationLat = request.args.get("userLocationLat")
-        userLocationLong = request.args.get("userLocationLong")
+        userLocationLat = request.form.get("userLocationLat")
+        userLocationLong = request.form.get("userLocationLong")
         print(userLocationLat)
         print(userLocationLong)
 
         g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
         print(g.json['country'])
-        userInfo['country'] = g.json['country']
+        userInfo['websitevisitedcountry'] = g.json['country']
         # check user's country is present in the dbpedia
-        if dbpedia.IsInfoInDBPedia(userInfo['country']):
-            userInfo['country']  = 'http://dbpedia.org/resource/' + userInfo['country'] + '"'
+        if dbpedia.IsInfoInDBPedia(userInfo['websitevisitedcountry']):
+            userInfo['websitevisitedcountry']  = 'http://dbpedia.org/resource/' + userInfo['websitevisitedcountry'] + '"'
 
         print(domain)
 

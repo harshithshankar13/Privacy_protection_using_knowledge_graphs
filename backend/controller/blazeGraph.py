@@ -150,7 +150,7 @@ def select_all():
 
 def add_companyInfo(compInfo):
     sparql.setMethod('POST')
-    print(compInfo)
+    print(":A:",compInfo)
     sparql.setQuery("""
         prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         prefix xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -169,6 +169,7 @@ def add_companyInfo(compInfo):
             } 
             }   
             """)
+
     sparql.setReturnFormat(JSON)
 
     result = sparql.query()
