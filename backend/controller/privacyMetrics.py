@@ -26,21 +26,30 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         
         print("userprofileLocationList: ", userProfileLocation)
 
-        websiteDomainLocation = m_websiteInfo[8]
-        if (websiteDomainLocation != None and m_userInfo['websitevisitedcountry'] != None and userProfileLocation is not None):
+        # take only location for comparsion
+        
+        if (m_websiteInfo[8] != None and m_userInfo['websitevisitedcountry'] != None and userProfileLocation is not None):
+            websiteDomainLocation = m_websiteInfo[8].split('/')[-1]
             print("location mataching : ", m_userInfo['websitevisitedcountry'], websiteDomainLocation)
-
-            if m_userInfo['websitevisitedcountry'] in userProfileLocation:
-                if m_userInfo['websitevisitedcountry'] == websiteDomainLocation:
+            if m_userInfo['websitevisitedcountry'] == websiteDomainLocation:
+                if websiteDomainLocation in userProfileLocation:
                     factorsUsed += 1
                     privacyScore += 0
-                elif m_userInfo['websitevisitedcountry'] in userProfileLocation:
+                else:
                     factorsUsed += 1
-                    privacyScore += 0.3
-            elif m_userInfo['websitevisitedcountry'] != websiteDomainLocation:
-                print("No connection between websitevisitedcountry")
-                factorsUsed += 1
-                privacyScore += 0.4
+                    privacyScore += 0.4
+            else:
+                if websiteDomainLocation in userProfileLocation:
+                    factorsUsed += 1
+                    privacyScore += 0.2
+                else:
+                    factorsUsed += 1
+                    privacyScore += 0.8
+        else:
+            factorsUsed += 1
+            privacyScore += 0.8
+
+        print("test 2:", privacyScore)
                 
         # 2. score based on ranking @ but ranking changes daily in alexa but here rank stored is static +++++++++
         if m_websiteInfo[6] != None:
@@ -119,6 +128,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         
         # 6. score based on user's visit count to the domain ++++++++++++++++++++++++++++++++++++
         if "domainVisitCount" in m_userInfo:
+            print("privacy score before domain visit: ", privacyScore)
             factorsUsed += 1
             if m_userInfo["domainVisitCount"] == 0:
                 privacyScore += 0.8
@@ -128,5 +138,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
                 privacyScore += 0.4
             elif m_userInfo["domainVisitCount"] <= 50:
                 privacyScore += 0.2
+
+            print("privacy score after domain visit: ", privacyScore)
 
     return ( privacyScore / factorsUsed) # only average is considered @@todo consider weighted average

@@ -11,6 +11,7 @@ import tldextract   # to extract the domain name from url
 import whois
 import geocoder
 import pycountry
+from geopy.geocoders import Nominatim
 import requests
 import json
 from datetime import datetime
@@ -50,6 +51,8 @@ def privacyMetric():
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
+    print("protocol: ", protocol)
+
     # get data from request
     userInfo['domainVisitCount'] = int(request.form.get("domainVisitCount"))
 
@@ -76,7 +79,7 @@ def privacyMetric():
         userInfo['websitevisitedcountry'] = g.json['country']
         # check user's country is present in the dbpedia
         if dbpedia.IsInfoInDBPedia(userInfo['websitevisitedcountry']):
-            userInfo['websitevisitedcountry']  = 'http://dbpedia.org/resource/' + userInfo['websitevisitedcountry'] + '"'
+            userInfo['websitevisitedcountry']  = userInfo['websitevisitedcountry']
 
         print(domain)
 
@@ -125,6 +128,14 @@ def privacyMetric():
 
                 # get company location information from dbpedia
                 companyLoc = dbpedia.getCompanyLocation(comp_info[1])
+                
+                if companyLoc != None:
+                    # convert company location into country
+                    geoLocator = Nominatim(user_agent="privacyProtection")
+                    companyLocForGeoCoder = companyLoc.split('/')[-1]
+                    location = geoLocator.geocode(companyLocForGeoCoder)
+                    companyLoc = location.raw['display_name'].split(" ")[-1]
+                    print("location country 222", companyLoc)
             
             if isPresentInDBPedia == False or companyLoc == None:
                 # get website domain reg. location using whois
@@ -132,18 +143,18 @@ def privacyMetric():
                     # get expiration location using whois
                     websiteInfoFromWhoIs = whois.whois(domain)
                     
-                websiteDomainCity = websiteInfoFromWhoIs.city
-                if websiteDomainCity != None: 
-                    print("Company location in app @1@: ", websiteInfoFromWhoIs)
-                    companyLoc = websiteDomainCity.replace(" ", "_")
+                # websiteDomainCity = websiteInfoFromWhoIs.city
+                # if websiteDomainCity != None: 
+                #     print("Company location in app @1@: ", websiteInfoFromWhoIs)
+                #     companyLoc = websiteDomainCity.replace(" ", "_")
+                # else:
+                websiteDomainCountry = websiteInfoFromWhoIs.country
+                companyLoc = pycountry.countries.get(alpha_2=websiteDomainCountry)
+                if companyLoc == None:
+                    companyLoc = "NaN"
                 else:
-                    websiteDomainCountry = websiteInfoFromWhoIs.country
-                    companyLoc = pycountry.countries.get(alpha_2=websiteDomainCountry)
-                    if companyLoc == None:
-                        companyLoc = "NaN"
-                    else:
-                        companyLoc = companyLoc.name
-                        companyLoc = companyLoc.replace(" ", "_")
+                    companyLoc = companyLoc.name
+                    companyLoc = companyLoc.replace(" ", "_")
 
             # get company information from dbpedia
             print("Company location in app @@: ", companyLoc)
