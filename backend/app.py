@@ -14,6 +14,7 @@ import pycountry
 from geopy.geocoders import Nominatim
 import requests
 import json
+import time
 from datetime import datetime
 
 import controller.alexa as alexa
@@ -51,6 +52,9 @@ def privacyMetric():
     urlInfo = tldextract.extract(url)
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
+    if protocol == "chrome-extension":
+        return jsonify({'privacyScore': 0, 'reasonForPrivacyScore': "This webpage is completely safe."})
+
     print("protocol: ", protocol)
 
     # get data from request
@@ -75,6 +79,9 @@ def privacyMetric():
         print(userLocationLong)
 
         g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
+        while g == None:
+            time.sleep(2)
+            g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
         print(g.json['country'])
         userInfo['websitevisitedcountry'] = g.json['country']
         # check user's country is present in the dbpedia
@@ -174,10 +181,11 @@ def privacyMetric():
             comp_info_score = comp_info
 
         # get privacy score based on company Info @@to-do send this data to the client
-        privacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
+        privacyScore, reasonForPrivacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
         print("privacyScore :", privacyScore)
+        print("reasonForPrivacyScore :", reasonForPrivacyScore)
 
-    return jsonify({'privacyScore': privacyScore})
+    return jsonify({'privacyScore': privacyScore, 'reasonForPrivacyScore': reasonForPrivacyScore})
 
 ################################################################################################
 @app.route('/getRDF', methods=['GET','POST'])

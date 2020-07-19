@@ -8,6 +8,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     # initialise privacy score
     privacyScore = 0 
     factorsUsed = 0
+    reasons = "<br>"
 
     # score based on website's protocol ++++++++++++++++++++++
     if m_websiteInfo[9] == "http":
@@ -38,48 +39,68 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
                 else:
                     factorsUsed += 1
                     privacyScore += 0.4
+                    reasons += "Mismatch in user's browsering location and company's location"
             else:
                 if websiteDomainLocation in userProfileLocation:
                     factorsUsed += 1
                     privacyScore += 0.2
+                    reasons += "Mismatch in user's profile location and company's location"
                 else:
                     factorsUsed += 1
                     privacyScore += 0.8
+                    reasons += "There is no connection between user's and company's location"
+            reasons += "<br>"
         else:
             factorsUsed += 1
             privacyScore += 0.8
-
-        print("test 2:", privacyScore)
+            reasons += "Not enough information about company's physical presence."
+            reasons += "<br>"
                 
         # 2. score based on ranking @ but ranking changes daily in alexa but here rank stored is static +++++++++
         if m_websiteInfo[6] != None:
             factorsUsed += 1
             if float(m_websiteInfo[6]) > 100000:
                 privacyScore += 1 # 100% privacy score
+                reasons += "This website's traffic is very low"
             elif float(m_websiteInfo[6]) > 75000 and float(m_websiteInfo[6]) < 100000:
                 privacyScore += 0.9
+                reasons += "This website's traffic is very low"
             elif float(m_websiteInfo[6]) > 50000 and float(m_websiteInfo[6]) < 75000:
                 privacyScore += 0.8
+                reasons += "This website's traffic is very low"
             elif float(m_websiteInfo[6]) > 25000 and float(m_websiteInfo[6]) < 50000:
                 privacyScore += 0.7
+                reasons += "This website's traffic is very low"
             elif float(m_websiteInfo[6]) > 10000 and float(m_websiteInfo[6]) < 25000:
                 privacyScore += 0.6
+                reasons += "This website's traffic is low"
             elif float(m_websiteInfo[6]) > 7500 and float(m_websiteInfo[6]) < 10000:
                 privacyScore += 0.5
+                reasons += "This website's traffic is good"
             elif float(m_websiteInfo[6]) > 5000 and float(m_websiteInfo[6]) < 7500:
                 privacyScore += 0.4
+                reasons += "This website's traffic is very good"
             elif float(m_websiteInfo[6]) > 3000 and float(m_websiteInfo[6]) < 5000:
                 privacyScore += 0.3
+                reasons += "This website's traffic is high"
             elif float(m_websiteInfo[6]) > 1000 and float(m_websiteInfo[6]) < 3000:
                 privacyScore += 0.2
+                reasons += "This website's traffic is very high"
             elif float(m_websiteInfo[6]) > 500 and float(m_websiteInfo[6]) < 1000:
                 privacyScore += 0.1
+                reasons += "This website's traffic is sky-high"
+            reasons += "<br>"
 
         # 3. score based on adult content ++++++++++++++++++++++++++++++++++++
         if m_websiteInfo[3] != None:
             factorsUsed += 1
             if m_websiteInfo[3] == 'yes':
                 privacyScore += 1.0
+                reasons += "This website may have an adult content"
+            else:
+                privacyScore += 0.0
+                reasons += "This website doesn't contain an adult content"
+            reasons += "<br>"
 
         # 4. score based on website type @@TODO add more companyType +++++++++++++++++++++++++++
         
@@ -114,6 +135,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
                 privacyScore += 0.8
             elif m_websiteInfo[4] == "Resources":
                 privacyScore += 0.8
+            reasons += "<br>"
 
         # 5. score based on website age ++++++++++++++++++++++++++++++++++++
         # calculate website's age
@@ -125,20 +147,34 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             # assign privacy score
             if websiteAge <= datetime.timedelta(weeks=52):
                 privacyScore += 0.8
-        
+                reasons += "This website's age is less than a year."
+            else:
+                privacyScore += 0.0
+                reasons += "This website's age is more than a year."
+            reasons += "<br>"
+
         # 6. score based on user's visit count to the domain ++++++++++++++++++++++++++++++++++++
         if "domainVisitCount" in m_userInfo:
-            print("privacy score before domain visit: ", privacyScore)
+            print("privacy score before domain visit: ", m_userInfo["domainVisitCount"] )
             factorsUsed += 1
+            domainVisitCount = str(m_userInfo['domainVisitCount'])
             if m_userInfo["domainVisitCount"] == 0:
                 privacyScore += 0.8
+                reasons += "You visited this website " + domainVisitCount + " times in recent 3 months."
             elif m_userInfo["domainVisitCount"] <= 10:
                 privacyScore += 0.6
+                reasons += "You visited this website " + domainVisitCount + " times in recent 3 months."
             elif m_userInfo["domainVisitCount"] <= 15:
                 privacyScore += 0.4
+                reasons += "You visited this website " + domainVisitCount + " times in recent 3 months."
             elif m_userInfo["domainVisitCount"] <= 50:
                 privacyScore += 0.2
+                reasons += "You visited this website " + domainVisitCount + " times in recent 3 months."
+            else:
+                privacyScore += 0.0
+                reasons += "You visited this website " + domainVisitCount + " times in recent 3 months."
 
             print("privacy score after domain visit: ", privacyScore)
+            reasons += "<br>"
 
-    return ( privacyScore / factorsUsed) # only average is considered @@todo consider weighted average
+    return ( privacyScore / factorsUsed), reasons # only average is considered @@todo consider weighted average

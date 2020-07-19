@@ -5,7 +5,7 @@
     "manifest_version": 2,
     "browser_action": {
       "default_popup": "popup.html",
-      "default_icon": "pp.png"
+      "default_icon": "assets/pp.png"
     },
     "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation", "history", "storage"],
     "background":{

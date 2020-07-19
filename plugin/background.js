@@ -5,9 +5,21 @@ document.head.appendChild(imported);
 // run on tab update
 chrome.tabs.onUpdated.addListener(sendURL);
 
+// run on new tab @@todo - not activated yet
+chrome.tabs.onCreated.addListener(setDefault);
+
 function sendURL(tabId, changeInfo, tab){
+  // store privacyScore
+  chrome.storage.sync.set({
+    "privacyScoreGlo": 0,
+    "PSdetailsGlo" : "loading",
+    "privacyScoreSet" : false
+  }, 
+  function() {
+      console.log('privacyScore is stored');
+  });
+
   // get user profile from local storage +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      
     // get user profile/graph from local browser storage  
     var userProfile ;
     chrome.storage.sync.get(null, function(result) {
@@ -59,24 +71,42 @@ function sendURL(tabId, changeInfo, tab){
         if(data.privacyScore > 0.5)
         {
           chrome.browserAction.setIcon({
-            path: 'pp_red.png',
+            path: 'assets/pp_red.png',
             //tabId: sender.tab.id
           });
         }
         else if (data.privacyScore > 0.2)
         {
           chrome.browserAction.setIcon({
-          path: 'pp_yellow.png',
+          path: 'assets/pp_yellow.png',
           //tabId: sender.tab.id
         });
         }
         else{
           chrome.browserAction.setIcon({
-            path: 'pp_green.png',
+            path: 'assets/pp_green.png',
             //tabId: sender.tab.id
           });
         }
-        $('p').append(data);
+        
+        // send reason for privacyScore to popup.js
+        chrome.runtime.sendMessage({
+          msg: "privacyScoreReason", 
+          data: {
+              privacyScore: data.privacyScore,
+              reason: data.reasonForPrivacyScore
+          }
+          });
+
+           // store privacyScore
+        chrome.storage.sync.set({
+          "privacyScoreGlo": data.privacyScore,
+          "PSdetailsGlo" : data.reasonForPrivacyScore,
+          "privacyScoreSet" : true
+        }, 
+        function() {
+            console.log('privacyScore is stored');
+        });
        });
     });
   
@@ -93,4 +123,18 @@ function sendURL(tabId, changeInfo, tab){
   //   $('p').append(data.firstName);
   // });
 
+}
+
+// set default status of privacyScore and reasons @@todo - not activated yet
+function setDefault(tabId, changeInfo, tab)
+{
+  // restore default status and icon
+  chrome.browserAction.setIcon({
+    path: 'assets/pp.png'
+  });
+
+  // send reason for privacyScore to popup.js
+  chrome.runtime.sendMessage({
+    msg: "clearPrivacyScoreReason"
+    });
 }

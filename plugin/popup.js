@@ -1,3 +1,8 @@
+// // global variables
+// var privacyScoreGlo = 0
+// var PSdetailsGlo = "Loading..."
+// var privacyScoreSet = false
+
 $(document).ready(function(){
   // triples view ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   $("button.viewTriples").click(function(){
@@ -50,7 +55,38 @@ $(document).ready(function(){
     });
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    // privacyScore and details labels set++++++++++++++++++++++++++++++++++++++
+    chrome.storage.sync.get(null, function(result) {
+      console.log('Value currently is ' + JSON.stringify(result));
+      privacyScoreGlo = result.privacyScoreGlo ;
+      PSdetailsGlo = result.PSdetailsGlo ;
+      privacyScoreSet = result.privacyScoreSet
+
+      console.log("privacyScoreSet: ", privacyScoreSet)
+
+      if(privacyScoreSet === true){
+        document.getElementById("privacyScore").innerHTML = "Privacy score: " + privacyScoreGlo;
+        document.getElementById("PSdetails").innerHTML = "Reason for privacy score: <br>" + PSdetailsGlo;
+      }
+    });
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 });
+
+// get message from backgroud.js
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+      if (request.msg == "privacyScoreReason") {
+      
+        document.getElementById("privacyScore").innerHTML = "Privacy score: " + request.data.privacyScore;
+        document.getElementById("PSdetails").innerHTML = "Reason for privacy score: " + request.data.reason;
+      }
+
+      if (request.msg == "clearPrivacyScoreReason") {
+        document.getElementById("privacyScore").innerHTML = "Loading...";
+        document.getElementById("PSdetails").innerHTML = "Loading...";
+      }
+  }
+);
 
 
 

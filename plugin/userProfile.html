@@ -82,21 +82,32 @@
       width: 50%;
     }
 
-    /* Add padding to container elements */
     .container {
       padding: 16px;
     } 
+
+    .header {
+        padding: 7px;
+        text-align: center;
+        background: #196dec;
+        color: rgb(255, 255, 255);
+        font-size: 15px;
+      }
+
   </style>
 
   </head>
 
   <body bgcolor="#dde6eb">
+    <div class="header"> 
+      <h2 style="color:#ffffff"> Welcome to privacy protection </h2>
+      <p style="color:#ffffff"> Protecting your privacy using knowledge graphs and semantic web techniques. </p>
+    </div>
     
-    <h2 style="color:#000000"> Welcome User </h2>
     <div id="container" class="container">
     <form name="getUserProfile" id="getUserProfile">
           <h1>User profile</h1>
-          <p>Please provide your informaton to increase efficiency of the algorithm.</p>
+          <p>Please provide your informaton to increase efficiency of the algorithm. This information is only stored in local storage. </p>
           <hr>
       
         <div id="basicDetails" class="basicDetails">
@@ -130,7 +141,6 @@
         </div>
 
          <hr>
-         
          
          <button type="submit" id="submitUserInfo" class="submitUserInfo">Submit details to user graph</button>
         </form>

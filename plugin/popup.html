@@ -3,18 +3,71 @@
     <title>Save URL</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="popup.js"></script>    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      button {
+        background-color: #3f6ae0;
+        color: white;
+        padding: 5px 20px;
+        margin: 8px auto;
+        display: block;
+        margin-left: auto;
+        margin-right: auto ;
+        border: none;
+        cursor: pointer;
+        width: 50%;
+        opacity: 0.9;
+        border-radius: 10px;
+      }
+
+      label{
+        background-color: #ffffff;
+        color: black;
+        padding: 5px 20px;
+        margin: 8px auto;
+        display: block;
+        margin-left: auto;
+        margin-right: auto ;
+        border: none;
+        font-size: 15px;
+        width: 70%;
+        opacity: 0.9;
+        border-radius: 10px;
+        font: 15px Arial bold;
+      }
+
+      .header {
+        padding: 7px;
+        text-align: center;
+        background: #3b9ebd;
+        color: rgb(255, 255, 255);
+        font-size: 10px;
+        font: bold;
+      }
+
+      body {
+        margin: 0 auto;
+        width: max-content;
+      }
+    </style>
+    
   </head>
 
   <body bgcolor="#dde6eb">
 
-    <h2 style="color:#000000"> Welcome to Privacy protection </h2>
-    <p style="color:#000000"> This extension will take website's domain name from URL. This extracted domain name can be used to get some more information 
-      about the website. In the end, website information is used to create the knowledge graph about the websites you have visited.  </p>
+    <div class="header"> 
+      <h2> Privacy protection </h2>
+    </div>
     
-    <button style="color:#000000;background-color:#a6cfdf;" class="viewTriples" id="viewTriples">Click to view RDF Triples!!</button>
+    <div id="privacyScoreAndDetails">
+      <label id="privacyScore"> Loading.. </label>
+      <label id="PSdetails"> Loading.. </label>
+    </div> 
+
+    <button style="color:#000000;background-color:#a6cfdf;" class="viewTriples" id="viewTriples">View triples</button>
     <button  style="color:#000000;background-color:#a6cfdf;" class="userProfile" id="userProfile"> User Profile</button> 
     <!--<button  style="color:#000000;background-color:#a6cfdf;" class="LInkedInLogin" id="LInkedInLogin"> LInkedInLogin</button> -->
-   
+    
    
     <!--<a href="https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=77mpeeyrvnkjaa&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2FuserProfile&state=fooobar&scope=r_liteprofile%20r_emailaddress">LinkedIn login.</a>
     <div id="LILogIn" class="LILogIn"> </div>  --> 
