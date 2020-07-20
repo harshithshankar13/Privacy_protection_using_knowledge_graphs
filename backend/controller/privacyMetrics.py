@@ -14,6 +14,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     if m_websiteInfo[9] == "http":
         factorsUsed += 1
         privacyScore = factorsUsed
+        reasons += "This website doesn't use secure protocol (Used protocol is http)."
     else:
         # 1. score based on location @@ implement ++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # adding user details location into userProfileLocation list
