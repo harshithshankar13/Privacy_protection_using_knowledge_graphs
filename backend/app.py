@@ -182,10 +182,16 @@ def privacyMetric():
 
         # get privacy score based on company Info @@to-do send this data to the client
         privacyScore, reasonForPrivacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
-        print("privacyScore :", privacyScore)
-        print("reasonForPrivacyScore :", reasonForPrivacyScore)
+        if comp_info[4] != None or comp_info[4] == "NaN":
+            websiteType = comp_info[4].split('/')[0]
+        else:
+            websiteType = "others"
 
-    return jsonify({'privacyScore': privacyScore, 'reasonForPrivacyScore': reasonForPrivacyScore})
+        print("privacyRiskScore :", privacyScore)
+        print("reasonForPrivacyScore :", reasonForPrivacyScore)
+        print("websiteType :", websiteType)
+
+    return jsonify({'privacyRiskScore': privacyScore, 'reasonForPrivacyScore': reasonForPrivacyScore, "websiteType":websiteType })
 
 ################################################################################################
 @app.route('/getRDF', methods=['GET','POST'])

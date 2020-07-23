@@ -20,6 +20,18 @@
         border-radius: 10px;
       }
 
+      select{
+        background-color: #788cc2;
+        color: white;
+        padding: 5px 20px;
+        margin: 8px auto;
+        display: block;
+        margin-left: auto;
+        margin-right: auto ;
+        border: none;
+        border-radius: 10px;
+      }
+
       label{
         background-color: #ffffff;
         color: black;
@@ -60,12 +72,22 @@
     </div>
     
     <div id="privacyScoreAndDetails">
-      <label id="privacyScore"> Loading.. </label>
-      <label id="PSdetails"> Loading.. </label>
+      <label id="privacyScore" style="display:none"> Privacy risk score is loading.. </label>
+      <label id="PSdetails" style="display:none"> Reason for score is loading.. </label>
+
+      <label id="getWebsiteUserCorrelationDiv" style="display:none" > Is this your ?? </label>
+      <select id="getWebsiteUserCorrelationTextBox" style="display:none"> 
+        <option> Yes </option>
+        <option> No </option>
+      </select>
+      <button  style="color:#000000;background-color:#a6cfdf; display:none;" class="submitUsrInfo" id="submitUsrInfo"> Submit </button> 
     </div> 
 
-    <button style="color:#000000;background-color:#a6cfdf;" class="viewTriples" id="viewTriples">View triples</button>
+    
+    <!-- <button style="color:#000000;background-color:#a6cfdf;" class="viewTriples"  id="viewTriples" style="display:none">View triples</button> -->
+    <br>
     <button  style="color:#000000;background-color:#a6cfdf;" class="userProfile" id="userProfile"> User Profile</button> 
+    
     <!--<button  style="color:#000000;background-color:#a6cfdf;" class="LInkedInLogin" id="LInkedInLogin"> LInkedInLogin</button> -->
     
    
