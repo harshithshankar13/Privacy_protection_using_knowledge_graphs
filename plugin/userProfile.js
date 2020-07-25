@@ -16,7 +16,7 @@ $(document).ready(function(){
             var singleEdu = {};
             singleEdu["InstitutionName"] = document.getElementById("instTextBox" + i).value ;
             singleEdu["DegreeObtained"] = document.getElementById("degreeTextBox" + i).value ;
-            singleEdu["InstituteURLTextBox"] = document.getElementById("instituteURLTextBox" + i).value ;
+            singleEdu["InstituteURL"] = document.getElementById("instituteURLTextBox" + i).value ;
             singleEdu["Location"] = document.getElementById("locTextBox" + i).value ;
             singleEdu["StudiedFrom"] = document.getElementById("eduFrom" + i).value ;
             singleEdu["StudiedTill"] = document.getElementById("eduTill" + i).value ;
@@ -31,7 +31,7 @@ $(document).ready(function(){
             var singleProf = {};
             singleProf["CompanyName"] = document.getElementById("compTextBox" + i).value ;
             singleProf["Role"] = document.getElementById("positionTextBox" + i).value ;
-            singleProf["CompanyURLTextBox"] = document.getElementById("companyURLTextBox" + i).value ;
+            singleProf["CompanyURL"] = document.getElementById("companyURLTextBox" + i).value ;
             singleProf["Location"] = document.getElementById("locTextBox" + i).value ;
             singleProf["WorkedFrom"] = document.getElementById("fromPro" + i).value ;
             singleProf["WorkedTill"] = document.getElementById("tillPro" + i).value ;

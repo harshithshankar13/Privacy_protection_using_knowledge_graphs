@@ -1,6 +1,7 @@
 # This file contains privacyMetric calculation
 
 import whois
+import tldextract 
 import datetime
 
 # calculating privacy score
@@ -9,6 +10,16 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     privacyScore = 0 
     factorsUsed = 0
     reasons = "<br>"
+
+    # user profile white list urls
+    userProfileWhiteListURLs = []
+    if 'EducationDetails' in m_userInfo['userProfile']:
+        for edu in m_userInfo['userProfile']['EducationDetails']:
+            userProfileWhiteListURLs.append(edu['InstituteURL'])
+    if 'ProfessionalExpirenceDetails' in m_userInfo['userProfile']:
+        for prof in m_userInfo['userProfile']['ProfessionalExpirenceDetails']:
+            userProfileWhiteListURLs.append(prof['CompanyURL'])
+    #++++++++++++++++++++++++++++
 
     # score based on website's protocol ++++++++++++++++++++++
     if m_websiteInfo[9] == "http":
@@ -20,11 +31,14 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         # adding user details location into userProfileLocation list
         userProfileLocation = []
         print("test1:", type(m_userInfo['userProfile']))
-        userProfileLocation.append(m_userInfo['userProfile']['nationality'])
-        for edu in m_userInfo['userProfile']['EducationDetails']:
-            userProfileLocation.append(edu['Location'])
-        for prof in m_userInfo['userProfile']['ProfessionalExpirenceDetails']:
-            userProfileLocation.append(prof['Location'])
+        if 'nationality' in m_userInfo['userProfile']:
+            userProfileLocation.append(m_userInfo['userProfile']['nationality'])
+        if 'EducationDetails' in m_userInfo['userProfile']:
+            for edu in m_userInfo['userProfile']['EducationDetails']:
+                userProfileLocation.append(edu['Location'])
+        if 'ProfessionalExpirenceDetails' in m_userInfo['userProfile']:
+            for prof in m_userInfo['userProfile']['ProfessionalExpirenceDetails']:
+                userProfileLocation.append(prof['Location'])
         
         print("userprofileLocationList: ", userProfileLocation)
 
@@ -95,9 +109,21 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         # 3. score based on adult content ++++++++++++++++++++++++++++++++++++
         if m_websiteInfo[3] != None:
             factorsUsed += 1
+            #userAge = datetime.datetime.now() - datetime.datetime.strptime(m_userInfo['userProfile']['DOB'], '%Y-%m-%d')
+            #print("Age:: ", userAge)
             if m_websiteInfo[3] == 'yes':
-                privacyScore += 1.0
-                reasons += "This website may have an adult content"
+                if 'DOB' in m_userInfo['userProfile']:
+                    if m_userInfo['userProfile']['DOB'] != None:
+                        userAge = datetime.datetime.now() - m_userInfo['userProfile']['DOB']
+                        if userAge <= datetime.timedelta(weeks=936):
+                            privacyScore += 1.0
+                            reasons += "This website may have an adult content and you are under 18 years."
+                        else:
+                            privacyScore += 0.8
+                            reasons += "This website may have an adult content but you are over 18 years."
+                    else:
+                        privacyScore += 1.0
+                        reasons += "This website may have an adult content."
             else:
                 privacyScore += 0.0
                 reasons += "This website doesn't contain an adult content"
@@ -107,8 +133,9 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         
         if m_websiteInfo[4] != None:
             factorsUsed += 1
-            # get website general type which is before / @@todo chaange this to some generatilation
+            # get website general type which is before / @@todo chaange this to some generalisation
             m_websiteInfo[4] = m_websiteInfo[4].split('/')[0] 
+            reasons += "This website belongs to " + m_websiteInfo[4] + " type."
 
             if m_websiteInfo[4] == "Search Engines":
                 privacyScore += 0.1
@@ -137,6 +164,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             elif m_websiteInfo[4] == "Resources":
                 privacyScore += 0.8
             reasons += "<br>"
+            
 
         # 5. score based on website age ++++++++++++++++++++++++++++++++++++
         # calculate website's age
@@ -146,7 +174,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             print("website Age: ", websiteAge)
             
             # assign privacy score
-            if websiteAge <= datetime.timedelta(weeks=52):
+            if websiteAge <= datetime.timedelta(weeks=52): # 1 year = 52 weeks
                 privacyScore += 0.8
                 reasons += "This website's age is less than a year."
             else:
@@ -177,5 +205,58 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
 
             print("privacy score after domain visit: ", privacyScore)
             reasons += "<br>"
+
+        # 7. score based on user's white listed URL list ++++++++++++++++++++++++++++++++++++
+        # get domain by removing www. in userProfileWhiteListURLs
+        if m_websiteInfo[4] != None:
+            if 'Trusted_' + m_websiteInfo[4] in m_userInfo['userProfile']:
+                for domain in m_userInfo['userProfile']['Trusted_' + m_websiteInfo[4]]:
+                    userProfileWhiteListURLs.append(domain)
+        else:
+            if 'Trusted_others' in m_userInfo['userProfile']:
+                for domain in m_userInfo['userProfile']['Trusted_others']:
+                    userProfileWhiteListURLs.append(domain)
+
+        userProfileWhiteListDomains = []
+        print("userProfileWhiteListURLs: ", userProfileWhiteListURLs)
+        for url in userProfileWhiteListURLs:
+            urlInfo = tldextract.extract(url)
+            domainList = urlInfo.domain + "." + urlInfo.suffix
+            userProfileWhiteListDomains.append(domainList )
+
+        print("userProfileWhiteListDomains: ", userProfileWhiteListDomains)
+        
+        if m_websiteInfo[0] in userProfileWhiteListDomains:
+            factorsUsed += 1
+            privacyScore -= 0.5
+            reasons += "You are using a website that you trust. <br>"
+        
+        # 8. score based on user History Website Type ++++++++++++++++++++++++++++++++++++
+        if 'userHistoryWebsiteTypes' in m_userInfo['userProfile']:
+            if m_websiteInfo[4] == None:
+                m_websiteInfo[4] = "others"
+            if m_websiteInfo[4] in m_userInfo['userProfile']['userHistoryWebsiteTypes']:
+                userHistoryWebsiteTypeFrequency = m_userInfo['userProfile']['userHistoryWebsiteTypes'][m_websiteInfo[4]]
+        
+                userHistoryWebsiteTypeFrequencyStr = str(userHistoryWebsiteTypeFrequency)
+                factorsUsed += 1
+                if userHistoryWebsiteTypeFrequency == 0:
+                    privacyScore += 0.8
+                    reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."
+                elif userHistoryWebsiteTypeFrequency <= 10:
+                    privacyScore += 0.6
+                    reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."
+                elif userHistoryWebsiteTypeFrequency <= 15:
+                    privacyScore += 0.4
+                    reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."
+                elif userHistoryWebsiteTypeFrequency <= 50:
+                    privacyScore += 0.2
+                    reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."
+                else:
+                    privacyScore += 0.0
+                    reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."
+
+        print("privacy score after domain visit: ", privacyScore)
+        reasons += "<br>"
 
     return ( privacyScore / factorsUsed), reasons # only average is considered @@todo consider weighted average

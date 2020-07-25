@@ -53,7 +53,7 @@ def privacyMetric():
     domain = urlInfo.domain +'.' + urlInfo.suffix
 
     if protocol == "chrome-extension":
-        return jsonify({'privacyScore': 0, 'reasonForPrivacyScore': "This webpage is completely safe."})
+        return jsonify({'privacyScore': 0, 'reasonForPrivacyScore': "This webpage is completely safe.", "websiteType":"privacyProtection"})
 
     print("protocol: ", protocol)
 
@@ -79,9 +79,11 @@ def privacyMetric():
         print(userLocationLong)
 
         g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
-        while g == None:
+        geocoderTriedNum = 0
+        while g is None or geocoderTriedNum < 5:
             time.sleep(2)
             g = geocoder.osm([userLocationLat, userLocationLong], method='reverse')
+            geocoderTriedNum += 1
         print(g.json['country'])
         userInfo['websitevisitedcountry'] = g.json['country']
         # check user's country is present in the dbpedia
@@ -182,7 +184,8 @@ def privacyMetric():
 
         # get privacy score based on company Info @@to-do send this data to the client
         privacyScore, reasonForPrivacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
-        if comp_info[4] != None or comp_info[4] == "NaN":
+        print("comp_info[4]", type(comp_info[4]))
+        if comp_info[4] is not None and comp_info[4] is not "NaN":
             websiteType = comp_info[4].split('/')[0]
         else:
             websiteType = "others"

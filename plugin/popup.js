@@ -2,7 +2,7 @@
 // var privacyScoreGlo = 0
 // var PSdetailsGlo = "Loading..."
 // var privacyScoreSet = false
-var websiteTypeGlo ;
+var websiteTypeGlo;
 var websiteURLGlo;
 
 $(document).ready(function () {
@@ -28,6 +28,7 @@ $(document).ready(function () {
   // User profile ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   $("button.userProfile").click(function () {
     chrome.tabs.create({ 'url': chrome.extension.getURL('userProfile.html') });
+    // chrome.storage.sync.clear(function(){  });
   });
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -80,7 +81,7 @@ $(document).ready(function () {
       document.getElementById("PSdetails").innerHTML = "Reason for privacy risk score: <br>" + PSdetailsGlo;
     }
     if (getWebUserCorrInfo === true) {
-      document.getElementById("getWebsiteUserCorrelationDiv").innerHTML = "Do you use and trust this " + websiteTypeGlo + " ?";
+      document.getElementById("getWebsiteUserCorrelationDiv").innerHTML = "Do you use and trust this " + websiteTypeGlo + " type of website?";
       document.getElementById("getWebsiteUserCorrelationDiv").style.display = '';
       document.getElementById("getWebsiteUserCorrelationTextBox").style.display = '';
       document.getElementById("submitUsrInfo").style.display = '';
@@ -94,13 +95,34 @@ $(document).ready(function () {
     var resFromWebsiteUserCorrelationTextBox = document.getElementById("getWebsiteUserCorrelationTextBox").value;
     console.log(resFromWebsiteUserCorrelationTextBox);
     if (resFromWebsiteUserCorrelationTextBox === "Yes") {
-      // store privacyScore
-      chrome.storage.sync.set({
-        ["Trusted_" +  websiteTypeGlo]: websiteURLGlo
-      },
-        function () {
-          console.log('user and website\'s correlation is stored');
+
+      // get Website User Correlation info
+      chrome.storage.sync.get("Trusted_" + websiteTypeGlo,
+        function (websiteURLs) {
+          var websiteURLPersis = [];
+
+          if (websiteURLs !== undefined && websiteURLs["Trusted_" + websiteTypeGlo] !== undefined){
+            for (i = 0; i < websiteURLs["Trusted_" + websiteTypeGlo].length; i++) {
+              websiteURLPersis.push(websiteURLs["Trusted_" + websiteTypeGlo][i]);
+            }
+          }
+          
+          console.log("websiteURLPersis before :", websiteURLPersis)
+          // add websiteURL to old list
+          websiteURLPersis.push(websiteURLGlo);
+
+          console.log("websiteURLPersis :", websiteURLPersis)
+
+          // store Website User Correlation info
+          chrome.storage.sync.set({
+            ["Trusted_" + websiteTypeGlo]: websiteURLPersis
+          },
+            function () {
+              console.log('user and website\'s correlation is stored');
+            });
         });
+
+
     }
 
     document.getElementById("getWebsiteUserCorrelationDiv").style.display = 'none';
@@ -108,9 +130,8 @@ $(document).ready(function () {
     document.getElementById("submitUsrInfo").style.display = 'none';
   });
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 });
-
-
 
 // get message from backgroud.js
 chrome.runtime.onMessage.addListener(

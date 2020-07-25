@@ -40,7 +40,6 @@ function sendURL(tabId, changeInfo, tab) {
     data.forEach(function (page) {
       if (new URL(page.url).host == domain) {
         domainVisitCount = domainVisitCount + page.visitCount;
-        console.log("domainVisitCount: ", domainVisitCount);
       }
     });
   });
@@ -57,10 +56,11 @@ function sendURL(tabId, changeInfo, tab) {
   var url = tab.url;
   console.log(url)
   if (url !== undefined && changeInfo.status == "complete" && url != "chrome://newtab/") {
-
+    console.log("geoLocation")
     window.lat = 0;
     window.longi = 0;
     if (navigator.geolocation) {
+
       navigator.geolocation.getCurrentPosition(function (position) {
         console.log(position.coords.latitude);
         lat = position.coords.latitude;
@@ -116,69 +116,113 @@ function sendURL(tabId, changeInfo, tab) {
               }
             });
 
-            // get websiteType
-            websiteType = data.websiteType
-            console.log("websiteType", websiteType)
-            var numberOfvisitToWebsiteType = 0;
-            var userHistoryWebsiteTypes;
-
-            userProfile = JSON.parse(userProfile);
-            console.log("userProfile", typeof (userProfile));
-            if (userProfile.hasOwnProperty("userHistoryWebsiteTypes")) {
-              if (userProfile["userHistoryWebsiteTypes"].hasOwnProperty(String(websiteType))) {
-                userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
-                userHistoryWebsiteTypes[websiteType] = userProfile["userHistoryWebsiteTypes"][websiteType] + 1
-              } else {
-                userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
-                userHistoryWebsiteTypes[websiteType] = 1
-              }
-            }
-            else {
-              userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
-              userHistoryWebsiteTypes[websiteType] = 1
-            }
-
-            console.log("userHistoryWebsiteTypes: ", userHistoryWebsiteTypes);
-            
-            //++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            if (tab.url != 'chrome-extension://bhjdkijlaepjnjnookngmcppbhdoahgh/popup.html' && tabIdLocal != tabId) {
-              console.log("tabId", tabId)
-
-              // display text on the icon
-              chrome.browserAction.setBadgeText({ text: "!!!" });
-
-              // send message to popup.js to get info about website correlation with user +++++++
-              chrome.runtime.sendMessage({
-                msg: "getWebsiteUserCorrelation",
-                data: {
-                  "websiteType": websiteType,
-                  "websiteMainURL" : domain
-                }
-              });
-
-              chrome.storage.sync.set({
-                "getWebUserCorrInfo": true,
-                "websiteType": websiteType,
-                "websiteMainURL" : domain
-              },
-                function () {
-                  console.log('GetWebUserCorrInfo is stored');
-                });
-
-              tabIdLocal = tabId;
-            }
-            // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
             // store privacyScore
             chrome.storage.sync.set({
               "privacyScoreGlo": data.privacyRiskScore,
               "PSdetailsGlo": data.reasonForPrivacyScore,
-              "privacyScoreSet": true,
-              "userHistoryWebsiteTypes": userHistoryWebsiteTypes
+              "privacyScoreSet": true
             },
               function () {
                 console.log('privacyScore is stored');
               });
+
+            // get websiteType
+            websiteType = data.websiteType
+            if (websiteType != "privacyProtection") {
+              console.log("websiteType", websiteType)
+              var numberOfvisitToWebsiteType = 0;
+              var userHistoryWebsiteTypes;
+
+              userProfile = JSON.parse(userProfile);
+              console.log("userProfile", typeof (userProfile));
+              if (userProfile.hasOwnProperty("userHistoryWebsiteTypes")) {
+                
+                if (userProfile["userHistoryWebsiteTypes"].hasOwnProperty(String(websiteType))) {
+                  console.log("Take 1");
+                  userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
+                  userHistoryWebsiteTypes[websiteType] = userProfile["userHistoryWebsiteTypes"][websiteType] + 1
+                } else {
+                  console.log("Take 2");
+                  userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
+                  console.log(userHistoryWebsiteTypes)
+                  userHistoryWebsiteTypes[websiteType] = 1
+                }
+                // store userHistoryWebsiteTypes
+                chrome.storage.sync.set({
+                  "userHistoryWebsiteTypes": userHistoryWebsiteTypes
+                },
+                  function () {
+                    console.log('userHistoryWebsiteTypes is stored');
+                  });
+              }
+              else {
+                console.log("Take 3");
+                // store userHistoryWebsiteTypes
+                chrome.storage.sync.set({
+                  "userHistoryWebsiteTypes": { [websiteType]: 1 }
+                },
+                  function () {
+                    console.log('userHistoryWebsiteTypes is stored');
+                  });
+              }
+
+              console.log("userHistoryWebsiteTypes: ", userHistoryWebsiteTypes);
+
+
+              //++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              // check if this website is present in the local userProfile
+              var domainIsPresent = false
+              // get Website User Correlation info
+              chrome.storage.sync.get(["Trusted_" + websiteType],
+                function (websiteURLs) {
+                  console.log("websiteURLs: ", websiteURLs);
+                  if (websiteURLs["Trusted_" + websiteType] != null) {
+                    if (websiteURLs["Trusted_" + websiteType].includes(domain)) {
+                      domainIsPresent = true;
+                      chrome.storage.sync.set({
+                        "getWebUserCorrInfo": false
+                      },
+                        function () {
+                          console.log('GetWebUserCorrInfo is stored');
+                        });
+                    }
+                  }
+
+                  console.log("domainIsPresent: ", domainIsPresent)
+                  // send msg to popup.js to get infomation 
+                  if (tab.url != 'chrome-extension://bhjdkijlaepjnjnookngmcppbhdoahgh/popup.html' && tabIdLocal != tabId && domainIsPresent == false) {
+                    console.log("tabId", tabId)
+
+                    // display text on the icon
+                    chrome.browserAction.setBadgeText({ text: "!!!" });
+
+                    // send message to popup.js to get info about website correlation with user +++++++
+                    chrome.runtime.sendMessage({
+                      msg: "getWebsiteUserCorrelation",
+                      data: {
+                        "websiteType": websiteType,
+                        "websiteMainURL": domain
+                      }
+                    });
+
+                    chrome.storage.sync.set({
+                      "getWebUserCorrInfo": true,
+                      "websiteType": websiteType,
+                      "websiteMainURL": domain
+                    },
+                      function () {
+                        console.log('GetWebUserCorrInfo is stored');
+                      });
+
+                    tabIdLocal = tabId;
+                  }
+
+
+                });
+            }
+            // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
           });
       });
 
