@@ -9,7 +9,12 @@
     },
     "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation", "history", "storage"],
     "background":{
-      "scripts":["jquery.js","background.js"]
+      "scripts":["jquery.js","background.js", "getContent.js"]
     },
-    "content_security_policy": "script-src 'self' https://ajax.googleapis.com ; object-src 'self'"
+    "content_scripts": [ {
+      "matches": ["<all_urls>"],
+      "js": ["getContent.js"],
+      "run_at": "document_end"
+    } ],
+    "content_security_policy": "script-src 'self' https://ajax.googleapis.com 'sha256-xI5baLkftKyKzTe/X2jh+r6IsMvAqLo73D0dmyZPs3M='; object-src 'self'"
 }

@@ -11,6 +11,7 @@ chrome.tabs.onUpdated.addListener(sendURL);
 chrome.tabs.onCreated.addListener(setDefault);
 
 function sendURL(tabId, changeInfo, tab) {
+  
 
   // skip unwanted urls
   if (tab.url == "chrome://newtab/") {
@@ -66,6 +67,13 @@ function sendURL(tabId, changeInfo, tab) {
         lat = position.coords.latitude;
         console.log(position.coords.longitude);
         longi = position.coords.longitude;
+
+        // send msg to content.js to get user data
+        // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        //   chrome.tabs.sendMessage(tabs[0].id, {msg: "setAttributes"}, function(response) {
+        //     console.log("Nice");
+        //   });
+        // });
 
         // send url to server
         // (@@LinkedIN logIn page) $.getJSON('https://www.linkedin.com/oauth/v2/authorization', 
@@ -136,7 +144,7 @@ function sendURL(tabId, changeInfo, tab) {
               userProfile = JSON.parse(userProfile);
               console.log("userProfile", typeof (userProfile));
               if (userProfile.hasOwnProperty("userHistoryWebsiteTypes")) {
-                
+
                 if (userProfile["userHistoryWebsiteTypes"].hasOwnProperty(String(websiteType))) {
                   console.log("Take 1");
                   userHistoryWebsiteTypes = userProfile["userHistoryWebsiteTypes"]
@@ -268,3 +276,13 @@ function setDefault(tabId, changeInfo, tab) {
       console.log('privacyScore is stored');
     });
 }
+
+
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.msg == "getUserEnteredInfo") {
+     
+     console.log(request.data);
+     console.log(request.domain);
+  }
+});
