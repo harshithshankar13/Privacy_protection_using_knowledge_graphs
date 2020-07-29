@@ -16,5 +16,5 @@
       "js": ["getContent.js"],
       "run_at": "document_end"
     } ],
-    "content_security_policy": "script-src 'self' https://ajax.googleapis.com 'sha256-xI5baLkftKyKzTe/X2jh+r6IsMvAqLo73D0dmyZPs3M='; object-src 'self'"
+    "content_security_policy": "script-src 'self' https://ajax.googleapis.com 'sha256-0uCu5oF6e+RFhFouWtm5Y7wk84rNCOztThZQStRZ3M4='; object-src 'self'"
 }

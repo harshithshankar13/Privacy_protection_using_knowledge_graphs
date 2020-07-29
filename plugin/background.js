@@ -11,7 +11,7 @@ chrome.tabs.onUpdated.addListener(sendURL);
 chrome.tabs.onCreated.addListener(setDefault);
 
 function sendURL(tabId, changeInfo, tab) {
-  
+
 
   // skip unwanted urls
   if (tab.url == "chrome://newtab/") {
@@ -277,12 +277,37 @@ function setDefault(tabId, changeInfo, tab) {
     });
 }
 
-
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  var userProfileValue = [];
   if (request.msg == "getUserEnteredInfo") {
-     
-     console.log(request.data);
-     console.log(request.domain);
+
+    console.log(request.data);
+    // compare data entered with userProfile
+    
+    chrome.storage.sync.get(null, function (result) {
+      console.log("Type: ", typeof(result["userHistoryWebsiteTypes"]));
+      
+      for (var key in result) {
+        console.log("result: ", typeof(result[key]));
+        if (result.hasOwnProperty(key)) {
+          if(typeof(result[key]) != 'object')
+          {
+            console.log("result 1: ", result[key]);
+            userProfileValue.push(result[key]);
+          }
+          else{
+            // @@how to find list and dict and get data of each type.
+            for(i =0; i < result[key].length; i++)
+            {
+              console.log("result 2: ", result[key]);
+              userProfileValue.push(result[key][i]);
+            }
+          }
+
+        }
+      }
+    });
+    console.log("userProfileValue: ", userProfileValue);
+    console.log(request.domain);
   }
 });
