@@ -156,7 +156,7 @@ $(document).ready(function(){
 
         var companyURLTextBox = document.createElement("INPUT");
         companyURLTextBox.setAttribute("type", "text");
-        companyURLTextBox.setAttribute("id", "companyURLTextBox" + idEduIndex);
+        companyURLTextBox.setAttribute("id", "companyURLTextBox" + idProIndex);
 
         var positionLabel = document.createElement("label");
         positionLabel.innerHTML = "Role : ";

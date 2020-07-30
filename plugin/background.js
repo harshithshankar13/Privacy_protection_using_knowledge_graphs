@@ -241,9 +241,6 @@ function sendURL(tabId, changeInfo, tab) {
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-
-
   // send url to server - @ redundent
   // $.getJSON('http://localhost:5000/privacyMetric', {url:tab.url, userLocation:{lat:lat, long:longi}} ,function (data, textStatus, jqXHR){
   //   $('p').append(data.firstName);
@@ -277,37 +274,119 @@ function setDefault(tabId, changeInfo, tab) {
     });
 }
 
+// get data entered and calculate distance++++++++++++++++++++++++++++++++++++++++++
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   var userProfileValue = [];
+  var userProfileKey = [];
   if (request.msg == "getUserEnteredInfo") {
 
-    console.log(request.data);
     // compare data entered with userProfile
-    
+
     chrome.storage.sync.get(null, function (result) {
-      console.log("Type: ", typeof(result["userHistoryWebsiteTypes"]));
-      
+
       for (var key in result) {
-        console.log("result: ", typeof(result[key]));
+        console.log("result: ", typeof (result[key]));
         if (result.hasOwnProperty(key)) {
-          if(typeof(result[key]) != 'object')
-          {
-            console.log("result 1: ", result[key]);
+          if (typeof (result[key]) != 'object') {
             userProfileValue.push(result[key]);
+            userProfileKey.push(key);
           }
-          else{
-            // @@how to find list and dict and get data of each type.
-            for(i =0; i < result[key].length; i++)
-            {
-              console.log("result 2: ", result[key]);
-              userProfileValue.push(result[key][i]);
+          else {
+            if (Array.isArray(result[key])) {
+              console.log("Array: ", result[key]);
+              for (i = 0; i < result[key].length; i++) {
+                if (typeof (result[key][i]) == "object") {
+                  console.log("object: ", result[key]);
+                  for (i = 0; i < Object.keys(result[key]).length; i++) {
+                    for (j = 0; j < Object.keys(result[key][i]).length; j++) {
+                      userProfileValue.push(Object.values(result[key][i])[j]);
+                      userProfileKey.push(Object.keys(result[key][i])[j]);
+                    }
+                  }
+                }
+                else {
+                  console.log("Array 1: ", result[key]);
+                  userProfileValue.push(result[key][i]);
+                  userProfileKey.push(key);
+                }
+              }
+            }
+            else {
+              console.log("not an Array");
+              for (i = 0; i < Object.keys(result[key]).length; i++) {
+                userProfileValue.push(Object.values(result[key])[i]);
+                userProfileKey.push(key);
+              }
             }
           }
-
         }
       }
+
+      // string match +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      console.log("changedInputTextKey: ", request.data.changedInputTextKey);
+      console.log("userProfileValue: ", userProfileValue);
+      var distance = {}
+      for (i = 0; i < userProfileValue.length; i++) {
+        if (typeof (userProfileValue[i]) == "string" && typeof (request.data.changedInputTextKey) == "string") {
+          distance[userProfileKey[i]] = damerau_levenshtein_distance(userProfileValue[i], request.data.changedInputTextKey);
+          
+        }
+      }
+      console.log("damerau_levenshtein_distance: ", distance);
     });
-    console.log("userProfileValue: ", userProfileValue);
     console.log(request.domain);
   }
 });
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// string matching+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+function damerau_levenshtein_distance(str1, str2) {
+  var matx = []; //2d matrix
+
+  // initialise
+  var n = str1.length;
+  var m = str2.length;
+
+  if (n == 0) return m;
+  if (m == 0) return n;
+
+  //Create an matrix in javascript
+  for (var i = n; i >= 0; i--) matx[i] = [];
+
+  // assign values to 1st row and 1st column
+  for (var i = n; i >= 0; i--) matx[i][0] = i;
+  for (var j = m; j >= 0; j--) matx[0][j] = j;
+
+  // calculate minimum steps required
+  for (var i = 1; i <= n; i++) {
+    var str1_i = str1.charAt(i - 1);
+
+    // Step 4
+    for (var j = 1; j <= m; j++) {
+
+      //Check the total so far
+      if (i == j && matx[i][j] > 4) return n;
+
+      var str2_j = str2.charAt(j - 1);
+      var cost = (str1_i == str2_j) ? 0 : 1; // Step 5
+
+      //Calculate the minimum
+      var a = matx[i - 1][j] + 1;
+      var b = matx[i][j - 1] + 1;
+      var c = matx[i - 1][j - 1] + cost;
+
+      if (b < a) a = b;
+      if (c < a) a = c;
+
+      matx[i][j] = a;
+
+      //Damerau transposition
+      if (i > 1 && j > 1 && str1_i == str2.charAt(j - 2) && str1.charAt(i - 2) == str2_j) {
+        matx[i][j] = Math.min(matx[i][j], matx[i - 2][j - 2] + cost);
+      }
+    }
+  }
+
+  // return total step required
+  return matx[n][m];
+}
