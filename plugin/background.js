@@ -7,8 +7,10 @@ var tabIdLocal;
 // run on tab update
 chrome.tabs.onUpdated.addListener(sendURL);
 
-// run on new tab @@todo - not activated yet
+// run on new tab 
 chrome.tabs.onCreated.addListener(setDefault);
+// run on old tab activated
+chrome.tabs.onActivated.addListener(setDefault);
 
 function sendURL(tabId, changeInfo, tab) {
 
@@ -80,59 +82,8 @@ function sendURL(tabId, changeInfo, tab) {
         $.post('http://localhost:5000/privacyMetric',
           { url: tab.url, userProfile: userProfile, userLocationLat: lat, userLocationLong: longi, domainVisitCount: domainVisitCount },
           function (data, textStatus, jqXHR) {
-            var privacyRiskScore = String(data.privacyRiskScore);
 
-            console.log("privacyRiskScore", privacyRiskScore)
-
-            // change icon based on privacy score
-            if (data.privacyRiskScore > 0.5) {
-              chrome.browserAction.setIcon({
-                path: 'assets/pp_red.png'
-                //tabId: sender.tab.id
-              });
-
-              // display text on the icon
-              chrome.browserAction.setBadgeText({ text: privacyRiskScore });
-              chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
-
-            }
-            else if (data.privacyRiskScore > 0.2) {
-              chrome.browserAction.setIcon({
-                path: 'assets/pp_yellow.png'
-                //tabId: sender.tab.id
-              });
-              // display text on the icon
-              chrome.browserAction.setBadgeText({ text: privacyRiskScore });
-              chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
-            }
-            else {
-              chrome.browserAction.setIcon({
-                path: 'assets/pp_green.png'
-                //tabId: sender.tab.id
-              });
-              //   // display text on the icon
-              chrome.browserAction.setBadgeText({ text: privacyRiskScore });
-              chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
-            }
-
-            // send reason for privacyScore to popup.js
-            chrome.runtime.sendMessage({
-              msg: "privacyScoreReason",
-              data: {
-                privacyScore: data.privacyRiskScore,
-                reason: data.reasonForPrivacyScore
-              }
-            });
-
-            // store privacyScore
-            chrome.storage.sync.set({
-              "privacyScoreGlo": data.privacyRiskScore,
-              "PSdetailsGlo": data.reasonForPrivacyScore,
-              "privacyScoreSet": true
-            },
-              function () {
-                console.log('privacyScore is stored');
-              });
+            displayPrivacyRiskScore(data);
 
             // get websiteType
             websiteType = data.websiteType
@@ -230,6 +181,9 @@ function sendURL(tabId, changeInfo, tab) {
             }
             // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+            chrome.storage.sync.get(null, function (result) {
+              console.log('Value currently is ' + JSON.stringify(result));
+            });
 
           });
       });
@@ -267,11 +221,16 @@ function setDefault(tabId, changeInfo, tab) {
     "privacyScoreGlo": 0,
     "PSdetailsGlo": "loading",
     "privacyScoreSet": false,
-    "getWebUserCorrInfo": false
+    "getWebUserCorrInfo": false,
+    "enterDataPrivacyScoreSet" : false
   },
     function () {
       console.log('privacyScore is stored');
     });
+
+  chrome.storage.sync.get(null, function (result) {
+    console.log('Value currently is ' + JSON.stringify(result));
+  });
 }
 
 // get data entered and calculate distance++++++++++++++++++++++++++++++++++++++++++
@@ -325,15 +284,127 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       // string match +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       console.log("changedInputTextKey: ", request.data.changedInputTextKey);
       console.log("userProfileValue: ", userProfileValue);
-      var distance = {}
+      var enteredStrLen = request.data.changedInputTextKey.length;
+      var distance = {};
+      var matchedFields = [];
       for (i = 0; i < userProfileValue.length; i++) {
-        if (typeof (userProfileValue[i]) == "string" && typeof (request.data.changedInputTextKey) == "string") {
+        if (typeof (userProfileValue[i]) == "string" && typeof (request.data.changedInputTextKey) == "string" && userProfileValue[i] != "PSdetailsGlo") {
           distance[userProfileKey[i]] = damerau_levenshtein_distance(userProfileValue[i], request.data.changedInputTextKey);
-          
+          // consider minimum distance based on proportion with respect to entered string length.
+          if ((0.375 * enteredStrLen) >= distance[userProfileKey[i]]) {
+            matchedFields.push(userProfileKey[i]);
+          }
         }
       }
+
+      console.log("matchedFields: ", matchedFields);
       console.log("damerau_levenshtein_distance: ", distance);
-    });
+
+      // update privacy score based on entered data sensitivity
+      var privacyRiskScore = 0;
+      var privacyRiskScoreFromComUserGraph = 0;
+      var factorsConsidered = 1;
+      var reasons = "";
+      var reasonsFromComUserGraph = "";
+      if (matchedFields.length > 0) {
+        if (result.hasOwnProperty("privacyScoreSet")) {
+          if (result["privacyScoreSet"] == true) {
+            privacyRiskScoreFromComUserGraph = result["privacyScoreGlo"];
+            reasonsFromComUserGraph = result["PSdetailsGlo"];
+
+            // reset entered data privacy score and reasons to original score and reasons
+            if (result["enterDataPrivacyScoreSet"] == true) {
+              enterDataPrivacyScore = result["enterDataPrivacyScore"];
+              enterDataPrivacyReasons = result["enterDataPrivacyReasons"];
+
+              console.log("privacyRiskScoreFromComUserGraph: ", privacyRiskScoreFromComUserGraph)
+              privacyRiskScoreFromComUserGraph -= enterDataPrivacyScore;
+              reasonsFromComUserGraph = reasonsFromComUserGraph.replace(enterDataPrivacyReasons, "");
+
+              // reset enterDataPrivacyScoreSet
+              chrome.storage.sync.set({
+                "enterDataPrivacyScoreSet": false
+              },
+                function () {
+                  console.log('enterDataPrivacyScore is reset');
+                });
+            }
+
+            for (i = 0; i < matchedFields.length; i++) {
+              // update privacy risk score based on entered input.
+              if (privacyRiskScore > 0.5) { // high risk
+                factorsConsidered += 1;
+                if (matchedFields[i] == "userName") {
+                  privacyRiskScore += 0.4;
+                  reasons += "It's not secure to enter your name to this website.";
+                }
+                else {
+                  privacyRiskScore += 0.8;
+                  reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
+                }
+                reasons += "<br>";
+              } else if (privacyRiskScore > 0.2) { // moderate risk
+                factorsConsidered += 1;
+                if (matchedFields[i] == "userName") {
+                  privacyRiskScore += 0.2;
+                  reasons += "It's not secure to enter your name to this website.";
+                }
+                else if (matchedFields[i] == "DOB" || matchedFields[i] == "DegreeObtained") {
+                  privacyRiskScore += 0.4;
+                  reasons += "It's not secure to enter your " + matchedFields[i] + " to this website.";
+                }
+                else {
+                  privacyRiskScore += 0.8;
+                  reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
+                }
+                reasons += "<br>";
+              } else { // low risk
+                factorsConsidered += 1;
+                if (matchedFields[i] == "userName") {
+                  privacyRiskScore += 0.1;
+                  reasons += "It's not secure to enter your name to this website.";
+                }
+                else if (matchedFields[i] == "DOB" || matchedFields[i] == "DegreeObtained") {
+                  privacyRiskScore += 0.3;
+                  reasons += "It's not secure to enter your " + matchedFields[i] + " to this website.";
+                }
+                else if (matchedFields[i] == "CompanyName" || matchedFields[i] == "CompanyURL" || matchedFields[i] == "InstituteURL" || matchedFields[i] == "InstitutionName" ||
+                  matchedFields[i] == "StudiedFrom" || matchedFields[i] == "StudiedTill" || matchedFields[i] == "WorkedFrom" || matchedFields[i] == "WorkedTill") {
+                  privacyRiskScore += 0.6;
+                  reasons += "Entered data (" + matchedFields[i] + ") is sensitive to enter for this website.";
+                }
+                else {
+                  privacyRiskScore += 0.8;
+                  reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
+                }
+                reasons += "<br>";
+              }
+            }
+
+            // update final privacy score
+            privacyRiskScore = privacyRiskScore / factorsConsidered;
+
+            // store entered privacy score and reasons for that privacy score
+            chrome.storage.sync.set({
+              "enterDataPrivacyScore": privacyRiskScore,
+              "enterDataPrivacyReasons": reasons,
+              "enterDataPrivacyScoreSet": true
+            },
+              function () {
+                console.log('enterDataPrivacyScore is stored');
+              });
+
+
+            privacyRiskScore += privacyRiskScoreFromComUserGraph;
+            reasons += reasonsFromComUserGraph
+
+            // display privacy risk score and reason
+            displayPrivacyRiskScore({ 'privacyRiskScore': privacyRiskScore, 'reasonForPrivacyScore': reasons, "fromUserEntered": true });
+          }
+        }
+      }
+    }
+    );
     console.log(request.domain);
   }
 });
@@ -387,6 +458,63 @@ function damerau_levenshtein_distance(str1, str2) {
     }
   }
 
-  // return total step required
+  // return total steps required
   return matx[n][m];
 }
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// displayPrivacyRiskScore +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+function displayPrivacyRiskScore(data) {
+  var privacyRiskScore = String(data.privacyRiskScore);
+  // change icon based on privacy score
+  if (data.privacyRiskScore > 0.5) {
+    chrome.browserAction.setIcon({
+      path: 'assets/pp_red.png'
+      //tabId: sender.tab.id
+    });
+
+    // display text on the icon
+    chrome.browserAction.setBadgeText({ text: privacyRiskScore });
+    chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
+
+  }
+  else if (data.privacyRiskScore > 0.2) {
+    chrome.browserAction.setIcon({
+      path: 'assets/pp_yellow.png'
+      //tabId: sender.tab.id
+    });
+    // display text on the icon
+    chrome.browserAction.setBadgeText({ text: privacyRiskScore });
+    chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
+  }
+  else {
+    chrome.browserAction.setIcon({
+      path: 'assets/pp_green.png'
+      //tabId: sender.tab.id
+    });
+    //   // display text on the icon
+    chrome.browserAction.setBadgeText({ text: privacyRiskScore });
+    chrome.browserAction.setBadgeBackgroundColor({ color: [0, 0, 0, 255] });
+  }
+
+  // send reason for privacyScore to popup.js
+  chrome.runtime.sendMessage({
+    msg: "privacyScoreReason",
+    data: {
+      privacyScore: data.privacyRiskScore,
+      reason: data.reasonForPrivacyScore
+    }
+  });
+
+  // store privacyScore
+  chrome.storage.sync.set({
+    "privacyScoreGlo": data.privacyRiskScore,
+    "PSdetailsGlo": data.reasonForPrivacyScore,
+    "privacyScoreSet": true
+  },
+    function () {
+      console.log('privacyScore is stored');
+    });
+
+}
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
