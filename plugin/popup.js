@@ -28,7 +28,7 @@ $(document).ready(function () {
   // User profile ++++++++++++++++++++++++++++++++++++++++++++++++++++++
   $("button.userProfile").click(function () {
     chrome.tabs.create({ 'url': chrome.extension.getURL('userProfile.html') });
-    // chrome.storage.sync.clear(function(){  });
+     //chrome.storage.sync.clear(function(){  }); // to clear storage
   });
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

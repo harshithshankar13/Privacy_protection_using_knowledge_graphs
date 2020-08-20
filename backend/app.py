@@ -143,6 +143,11 @@ def privacyMetric():
                     geoLocator = Nominatim(user_agent="privacyProtection")
                     companyLocForGeoCoder = companyLoc.split('/')[-1]
                     location = geoLocator.geocode(companyLocForGeoCoder)
+                    geocoderTriedNum2 = 0
+                    while location is None or geocoderTriedNum2 < 5:
+                        time.sleep(2)
+                        location = geoLocator.geocode(companyLocForGeoCoder)
+                        geocoderTriedNum2 += 1
                     companyLoc = location.raw['display_name'].split(" ")[-1]
                     print("location country 222", companyLoc)
             
@@ -184,7 +189,7 @@ def privacyMetric():
 
         # get privacy score based on company Info @@to-do send this data to the client
         privacyScore, reasonForPrivacyScore = privacyMetrics.calculatePrivacyScore(comp_info, userInfo)
-        print("comp_info[4]", type(comp_info[4]))
+        print("comp_info[4]", comp_info[4])
         if comp_info[4] is not None and comp_info[4] is not "NaN":
             websiteType = comp_info[4].split('/')[0]
         else:

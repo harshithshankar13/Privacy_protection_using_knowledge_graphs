@@ -13,8 +13,6 @@ chrome.tabs.onCreated.addListener(setDefault);
 chrome.tabs.onActivated.addListener(setDefault);
 
 function sendURL(tabId, changeInfo, tab) {
-
-
   // skip unwanted urls
   if (tab.url == "chrome://newtab/") {
     // clear previous datas privacyScore
@@ -240,7 +238,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.msg == "getUserEnteredInfo") {
 
     // compare data entered with userProfile
-
     chrome.storage.sync.get(null, function (result) {
 
       for (var key in result) {
@@ -287,11 +284,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       var enteredStrLen = request.data.changedInputTextKey.length;
       var distance = {};
       var matchedFields = [];
+      var changedInputTextKey = request.data.changedInputTextKey.toLowerCase();
       for (i = 0; i < userProfileValue.length; i++) {
-        if (typeof (userProfileValue[i]) == "string" && typeof (request.data.changedInputTextKey) == "string" && userProfileValue[i] != "PSdetailsGlo") {
-          distance[userProfileKey[i]] = damerau_levenshtein_distance(userProfileValue[i], request.data.changedInputTextKey);
+        if (typeof (userProfileValue[i]) == "string" && typeof (changedInputTextKey) == "string" && userProfileValue[i] != "PSdetailsGlo") {
+          distance[userProfileKey[i]] = damerau_levenshtein_distance(userProfileValue[i], changedInputTextKey);
           // consider minimum distance based on proportion with respect to entered string length.
           if ((0.375 * enteredStrLen) >= distance[userProfileKey[i]]) {
+            matchedFields.push(userProfileKey[i]);
+          }
+          else if(changedInputTextKey.includes(userProfileValue[i].toLowerCase())) //if string present as substring
+          {
             matchedFields.push(userProfileKey[i]);
           }
         }

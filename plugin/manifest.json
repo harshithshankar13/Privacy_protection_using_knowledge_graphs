@@ -9,11 +9,11 @@
     },
     "permissions":["<all_urls>", "tabs", "http://localhost:5000/","webRequest", "geolocation", "history", "storage"],
     "background":{
-      "scripts":["jquery.js","background.js", "getContent.js"]
+      "scripts":["background.js", "content.js"]
     },
     "content_scripts": [ {
       "matches": ["<all_urls>"],
-      "js": ["getContent.js"],
+      "js": ["content.js"],
       "run_at": "document_end"
     } ],
     "content_security_policy": "script-src 'self' https://ajax.googleapis.com 'sha256-0uCu5oF6e+RFhFouWtm5Y7wk84rNCOztThZQStRZ3M4='; object-src 'self'"

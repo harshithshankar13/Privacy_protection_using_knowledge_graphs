@@ -24,7 +24,7 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
     # score based on website's protocol ++++++++++++++++++++++
     if m_websiteInfo[9] == "http":
         factorsUsed += 1
-        privacyScore = factorsUsed
+        privacyScore = 1
         reasons += "This website doesn't use secure protocol (Used protocol is http)."
     else:
         # 1. score based on location @@ implement ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -46,20 +46,26 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         
         if (m_websiteInfo[8] != None and m_userInfo['websitevisitedcountry'] != None and userProfileLocation is not None):
             websiteDomainLocation = m_websiteInfo[8].split('/')[-1]
-            print("location mataching : ", m_userInfo['websitevisitedcountry'], websiteDomainLocation)
-            if m_userInfo['websitevisitedcountry'] == websiteDomainLocation:
+            if websiteDomainLocation =="NaN" :
+                factorsUsed += 1
+                privacyScore += 0.8
+                reasons += "Not enough information about company's physical presence."
+                reasons += "<br>"
+                print("location mataching : ", m_userInfo['websitevisitedcountry'], websiteDomainLocation)
+            elif m_userInfo['websitevisitedcountry'] == websiteDomainLocation:
                 if websiteDomainLocation in userProfileLocation:
                     factorsUsed += 1
                     privacyScore += 0
+                    reasons += "There is a match in user's browsering location and company's location"
                 else:
                     factorsUsed += 1
                     privacyScore += 0.4
-                    reasons += "Mismatch in user's browsering location and company's location"
+                    reasons += "There is a connection between user profile location and website but no collection between user's browsering location and company's location"
             else:
                 if websiteDomainLocation in userProfileLocation:
                     factorsUsed += 1
                     privacyScore += 0.2
-                    reasons += "Mismatch in user's profile location and company's location"
+                    reasons += "Match in user's profile location and company's location but mismatch with user's browsing location"
                 else:
                     factorsUsed += 1
                     privacyScore += 0.8
@@ -103,6 +109,9 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
                 reasons += "This website's traffic is very high"
             elif float(m_websiteInfo[6]) > 500 and float(m_websiteInfo[6]) < 1000:
                 privacyScore += 0.1
+                reasons += "This website's traffic is sky-high"
+            elif float(m_websiteInfo[6]) < 500:
+                privacyScore += 0
                 reasons += "This website's traffic is sky-high"
             reasons += "<br>"
 
@@ -158,12 +167,23 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             elif m_websiteInfo[4] == "Chats":
                 privacyScore += 0.7
             elif m_websiteInfo[4] == "Instructional Technology":
-                privacyScore += 0.3
+                privacyScore += 0.5
             elif m_websiteInfo[4] == "Open Source":
                 privacyScore += 0.8
             elif m_websiteInfo[4] == "Resources":
                 privacyScore += 0.8
-            reasons += "<br>"
+            elif m_websiteInfo[4] == "Employment":
+                privacyScore += 0.5
+            elif m_websiteInfo[4] == "Online Communities":
+                privacyScore += 0.7
+            elif m_websiteInfo[4] == "Video":
+                privacyScore += 0.7
+            elif m_websiteInfo[4] == "work":
+                privacyScore += 0.5
+        else:
+            factorsUsed += 1
+            privacyScore += 0.8
+        reasons += "<br>"
             
 
         # 5. score based on website age ++++++++++++++++++++++++++++++++++++
@@ -233,13 +253,14 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         
         # 8. score based on user History Website Type ++++++++++++++++++++++++++++++++++++
         if 'userHistoryWebsiteTypes' in m_userInfo['userProfile']:
+            factorsUsed += 1
             if m_websiteInfo[4] == None:
                 m_websiteInfo[4] = "others"
             if m_websiteInfo[4] in m_userInfo['userProfile']['userHistoryWebsiteTypes']:
                 userHistoryWebsiteTypeFrequency = m_userInfo['userProfile']['userHistoryWebsiteTypes'][m_websiteInfo[4]]
         
                 userHistoryWebsiteTypeFrequencyStr = str(userHistoryWebsiteTypeFrequency)
-                factorsUsed += 1
+                
                 if userHistoryWebsiteTypeFrequency == 0:
                     privacyScore += 0.8
                     reasons += "You visited this website type " + userHistoryWebsiteTypeFrequencyStr + " times in recent 3 months."

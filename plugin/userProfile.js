@@ -4,9 +4,9 @@ $(document).ready(function(){
     // save user detail to browser storage ++++++++++++++++++++++++++++++++++++++++++++++++++++++
     $("button.submitUserInfo").click(function(){
         // get basic details
-        var userName = document.getElementById("userName").value ;
-        var profession = document.getElementById("profession").value ;
-        var nationality = document.getElementById("Nationality").value ;
+        var userName = document.getElementById("userName").value.toLowerCase() ;
+        var profession = document.getElementById("profession").value.toLowerCase() ;
+        var nationality = document.getElementById("Nationality").value.toLowerCase() ;
         var DOB = document.getElementById("DOB").value ;
 
         // get education details
@@ -14,9 +14,9 @@ $(document).ready(function(){
         for (i = 0; i < idEduIndex; i++)
         {
             var singleEdu = {};
-            singleEdu["InstitutionName"] = document.getElementById("instTextBox" + i).value ;
-            singleEdu["DegreeObtained"] = document.getElementById("degreeTextBox" + i).value ;
-            singleEdu["InstituteURL"] = document.getElementById("instituteURLTextBox" + i).value ;
+            singleEdu["InstitutionName"] = document.getElementById("instTextBox" + i).value.toLowerCase() ;
+            singleEdu["DegreeObtained"] = document.getElementById("degreeTextBox" + i).value.toLowerCase() ;
+            singleEdu["InstituteURL"] = document.getElementById("instituteURLTextBox" + i).value.toLowerCase() ;
             singleEdu["Location"] = document.getElementById("locTextBox" + i).value ;
             singleEdu["StudiedFrom"] = document.getElementById("eduFrom" + i).value ;
             singleEdu["StudiedTill"] = document.getElementById("eduTill" + i).value ;
@@ -29,9 +29,9 @@ $(document).ready(function(){
         for (i = 0; i < idProIndex; i++)
         {
             var singleProf = {};
-            singleProf["CompanyName"] = document.getElementById("compTextBox" + i).value ;
-            singleProf["Role"] = document.getElementById("positionTextBox" + i).value ;
-            singleProf["CompanyURL"] = document.getElementById("companyURLTextBox" + i).value ;
+            singleProf["CompanyName"] = document.getElementById("compTextBox" + i).value.toLowerCase() ;
+            singleProf["Role"] = document.getElementById("positionTextBox" + i).value.toLowerCase() ;
+            singleProf["CompanyURL"] = document.getElementById("companyURLTextBox" + i).value.toLowerCase() ;
             singleProf["Location"] = document.getElementById("locTextBox" + i).value ;
             singleProf["WorkedFrom"] = document.getElementById("fromPro" + i).value ;
             singleProf["WorkedTill"] = document.getElementById("tillPro" + i).value ;
