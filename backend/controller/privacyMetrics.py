@@ -226,32 +226,8 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
             print("privacy score after domain visit: ", privacyScore)
             reasons += "<br>"
 
-        # 7. score based on user's white listed URL list ++++++++++++++++++++++++++++++++++++
-        # get domain by removing www. in userProfileWhiteListURLs
-        if m_websiteInfo[4] != None:
-            if 'Trusted_' + m_websiteInfo[4] in m_userInfo['userProfile']:
-                for domain in m_userInfo['userProfile']['Trusted_' + m_websiteInfo[4]]:
-                    userProfileWhiteListURLs.append(domain)
-        else:
-            if 'Trusted_others' in m_userInfo['userProfile']:
-                for domain in m_userInfo['userProfile']['Trusted_others']:
-                    userProfileWhiteListURLs.append(domain)
-
-        userProfileWhiteListDomains = []
-        print("userProfileWhiteListURLs: ", userProfileWhiteListURLs)
-        for url in userProfileWhiteListURLs:
-            urlInfo = tldextract.extract(url)
-            domainList = urlInfo.domain + "." + urlInfo.suffix
-            userProfileWhiteListDomains.append(domainList )
-
-        print("userProfileWhiteListDomains: ", userProfileWhiteListDomains)
         
-        if m_websiteInfo[0] in userProfileWhiteListDomains:
-            factorsUsed += 1
-            privacyScore -= 0.5
-            reasons += "You are using a website that you trust. <br>"
-        
-        # 8. score based on user History Website Type ++++++++++++++++++++++++++++++++++++
+        # 7. score based on user History Website Type ++++++++++++++++++++++++++++++++++++
         if 'userHistoryWebsiteTypes' in m_userInfo['userProfile']:
             factorsUsed += 1
             if m_websiteInfo[4] == None:
@@ -280,4 +256,31 @@ def calculatePrivacyScore(m_websiteInfo, m_userInfo):
         print("privacy score after domain visit: ", privacyScore)
         reasons += "<br>"
 
-    return ( privacyScore / factorsUsed), reasons # only average is considered @@todo consider weighted average
+        # calculate final privacy score
+        finalPrivacyScore =  privacyScore / factorsUsed
+
+        # 8. score based on user's white listed URL list ++++++++++++++++++++++++++++++++++++
+        # get domain by removing www. in userProfileWhiteListURLs
+        if m_websiteInfo[4] != None:
+            if 'Trusted_' + m_websiteInfo[4] in m_userInfo['userProfile']:
+                for domain in m_userInfo['userProfile']['Trusted_' + m_websiteInfo[4]]:
+                    userProfileWhiteListURLs.append(domain)
+        else:
+            if 'Trusted_others' in m_userInfo['userProfile']:
+                for domain in m_userInfo['userProfile']['Trusted_others']:
+                    userProfileWhiteListURLs.append(domain)
+
+        userProfileWhiteListDomains = []
+        print("userProfileWhiteListURLs: ", userProfileWhiteListURLs)
+        for url in userProfileWhiteListURLs:
+            urlInfo = tldextract.extract(url)
+            domainList = urlInfo.domain + "." + urlInfo.suffix
+            userProfileWhiteListDomains.append(domainList )
+
+        print("userProfileWhiteListDomains: ", userProfileWhiteListDomains)
+        
+        if m_websiteInfo[0] in userProfileWhiteListDomains:
+            privacyScore = privacyScore/2
+            reasons += "You are using a website that you trust. <br>"
+
+    return finalPrivacyScore, reasons # only average is considered @@todo consider weighted average

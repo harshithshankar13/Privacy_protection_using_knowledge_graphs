@@ -80,7 +80,7 @@ function sendURL(tabId, changeInfo, tab) {
         $.post('http://localhost:5000/privacyMetric',
           { url: tab.url, userProfile: userProfile, userLocationLat: lat, userLocationLong: longi, domainVisitCount: domainVisitCount },
           function (data, textStatus, jqXHR) {
-
+            data["fromUserEntered"] = false;
             displayPrivacyRiskScore(data);
 
             // get websiteType
@@ -308,20 +308,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       var factorsConsidered = 1;
       var reasons = "";
       var reasonsFromComUserGraph = "";
+      var privacyRiskScoreUsrEtrData = 0;
       if (matchedFields.length > 0) {
         if (result.hasOwnProperty("privacyScoreSet")) {
           if (result["privacyScoreSet"] == true) {
-            privacyRiskScoreFromComUserGraph = result["privacyScoreGlo"];
-            reasonsFromComUserGraph = result["PSdetailsGlo"];
+            // privacyRiskScoreFromComUserGraph = result["privacyScoreGlo"];
+            // reasonsFromComUserGraph = result["PSdetailsGlo"];
 
+            // privacyRiskScore = privacyRiskScoreFromComUserGraph;
+            privacyRiskScore = result["basePrivacyRiskScore"];
             // reset entered data privacy score and reasons to original score and reasons
             if (result["enterDataPrivacyScoreSet"] == true) {
-              enterDataPrivacyScore = result["enterDataPrivacyScore"];
-              enterDataPrivacyReasons = result["enterDataPrivacyReasons"];
+              privacyRiskScore = result["basePrivacyRiskScore"];
+              // enterDataPrivacyReasons = result["enterDataPrivacyReasons"];
 
-              console.log("privacyRiskScoreFromComUserGraph: ", privacyRiskScoreFromComUserGraph)
-              privacyRiskScoreFromComUserGraph -= enterDataPrivacyScore;
-              reasonsFromComUserGraph = reasonsFromComUserGraph.replace(enterDataPrivacyReasons, "");
+              // console.log("privacyRiskScoreFromComUserGraph: ", privacyRiskScoreFromComUserGraph)
+              // enterDataPrivacyScore -= privacyRiskScoreFromComUserGraph ;
+              // console.log("basePrivacyRiskScore: ", basePrivacyRiskScore);
+              // privacyRiskScore = privacyRiskScore - enterDataPrivacyScore ;
+
+              // reasonsFromComUserGraph = reasonsFromComUserGraph.replace(enterDataPrivacyReasons, "");
 
               // reset enterDataPrivacyScoreSet
               chrome.storage.sync.set({
@@ -331,74 +337,87 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                   console.log('enterDataPrivacyScore is reset');
                 });
             }
-
+            
+            console.log("privacyRiskScore pre: ", privacyRiskScore);
             for (i = 0; i < matchedFields.length; i++) {
               // update privacy risk score based on entered input.
               if (privacyRiskScore > 0.5) { // high risk
                 factorsConsidered += 1;
                 if (matchedFields[i] == "userName") {
-                  privacyRiskScore += 0.4;
+                  privacyRiskScoreUsrEtrData += 0.4;
                   reasons += "It's not secure to enter your name to this website.";
                 }
                 else {
-                  privacyRiskScore += 0.8;
+                  privacyRiskScoreUsrEtrData += 0.8;
                   reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
                 }
                 reasons += "<br>";
               } else if (privacyRiskScore > 0.2) { // moderate risk
+                console.log("moderate risk");
                 factorsConsidered += 1;
                 if (matchedFields[i] == "userName") {
-                  privacyRiskScore += 0.2;
+                  privacyRiskScoreUsrEtrData += 0.2;
                   reasons += "It's not secure to enter your name to this website.";
                 }
                 else if (matchedFields[i] == "DOB" || matchedFields[i] == "DegreeObtained") {
-                  privacyRiskScore += 0.4;
+                  privacyRiskScoreUsrEtrData += 0.4;
                   reasons += "It's not secure to enter your " + matchedFields[i] + " to this website.";
                 }
                 else {
-                  privacyRiskScore += 0.8;
+                  privacyRiskScoreUsrEtrData += 0.8;
                   reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
                 }
                 reasons += "<br>";
               } else { // low risk
+                console.log("low risk");
                 factorsConsidered += 1;
                 if (matchedFields[i] == "userName") {
-                  privacyRiskScore += 0.1;
+                  privacyRiskScoreUsrEtrData += 0.1;
                   reasons += "It's not secure to enter your name to this website.";
                 }
                 else if (matchedFields[i] == "DOB" || matchedFields[i] == "DegreeObtained") {
-                  privacyRiskScore += 0.3;
+                  privacyRiskScoreUsrEtrData += 0.3;
                   reasons += "It's not secure to enter your " + matchedFields[i] + " to this website.";
                 }
                 else if (matchedFields[i] == "CompanyName" || matchedFields[i] == "CompanyURL" || matchedFields[i] == "InstituteURL" || matchedFields[i] == "InstitutionName" ||
                   matchedFields[i] == "StudiedFrom" || matchedFields[i] == "StudiedTill" || matchedFields[i] == "WorkedFrom" || matchedFields[i] == "WorkedTill") {
-                  privacyRiskScore += 0.6;
+                  privacyRiskScoreUsrEtrData += 0.6;
                   reasons += "Entered data (" + matchedFields[i] + ") is sensitive to enter for this website.";
                 }
                 else {
-                  privacyRiskScore += 0.8;
+                  privacyRiskScoreUsrEtrData += 0.8;
                   reasons += "Entered data (" + matchedFields[i] + ") is very sensitive to enter for this website.";
                 }
                 reasons += "<br>";
               }
             }
 
-            // update final privacy score
-            privacyRiskScore = privacyRiskScore / factorsConsidered;
+            // update final privacy score            
+            privacyRiskScore += privacyRiskScore * privacyRiskScoreUsrEtrData;
 
+            if(privacyRiskScore > 1)
+            {
+              privacyRiskScore = 1;
+            }
+            if(privacyRiskScore < 0)
+            {
+              privacyRiskScore = 0;
+            }
+
+            // console.log("privacyRiskScoreFromComUserGraph: ", privacyRiskScoreFromComUserGraph);
+            console.log("privacyRiskScore: ", privacyRiskScore);
+            
+            //privacyRiskScore += privacyRiskScoreFromComUserGraph;
+            //reasons += reasonsFromComUserGraph
+            
             // store entered privacy score and reasons for that privacy score
-            chrome.storage.sync.set({
-              "enterDataPrivacyScore": privacyRiskScore,
-              "enterDataPrivacyReasons": reasons,
-              "enterDataPrivacyScoreSet": true
-            },
-              function () {
-                console.log('enterDataPrivacyScore is stored');
-              });
-
-
-            privacyRiskScore += privacyRiskScoreFromComUserGraph;
-            reasons += reasonsFromComUserGraph
+            // chrome.storage.sync.set({
+            //   "basePrivacyRiskScore": privacyRiskScoreFromComUserGraph,
+            //   "enterDataPrivacyScoreSet": true
+            // },
+            //   function () {
+            //     console.log('enterDataPrivacyScore is stored');
+            //   });
 
             // display privacy risk score and reason
             displayPrivacyRiskScore({ 'privacyRiskScore': privacyRiskScore, 'reasonForPrivacyScore': reasons, "fromUserEntered": true });
@@ -507,16 +526,30 @@ function displayPrivacyRiskScore(data) {
       reason: data.reasonForPrivacyScore
     }
   });
-
-  // store privacyScore
-  chrome.storage.sync.set({
-    "privacyScoreGlo": data.privacyRiskScore,
-    "PSdetailsGlo": data.reasonForPrivacyScore,
-    "privacyScoreSet": true
-  },
-    function () {
-      console.log('privacyScore is stored');
-    });
+  
+  if(data.fromUserEntered == true){
+    // store privacyScore
+    chrome.storage.sync.set({
+      "privacyScoreGlo": data.privacyRiskScore,
+      "PSdetailsGlo": data.reasonForPrivacyScore,
+      "privacyScoreSet": true
+    },
+      function () {
+        console.log('privacyScore is stored');
+      });
+    }
+    else{
+      // store privacyScore
+      chrome.storage.sync.set({
+        "privacyScoreGlo": data.privacyRiskScore,
+        "basePrivacyRiskScore" : data.privacyRiskScore,
+        "PSdetailsGlo": data.reasonForPrivacyScore,
+        "privacyScoreSet": true
+      },
+        function () {
+          console.log('privacyScore is stored');
+        });
+    }
 
 }
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
