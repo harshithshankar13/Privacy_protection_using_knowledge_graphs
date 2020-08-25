@@ -313,7 +313,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         if (result.hasOwnProperty("privacyScoreSet")) {
           if (result["privacyScoreSet"] == true) {
             // privacyRiskScoreFromComUserGraph = result["privacyScoreGlo"];
-            // reasonsFromComUserGraph = result["PSdetailsGlo"];
+            reasonsFromComUserGraph = result["PSdetailsGlo"];
 
             // privacyRiskScore = privacyRiskScoreFromComUserGraph;
             privacyRiskScore = result["basePrivacyRiskScore"];
@@ -327,7 +327,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
               // console.log("basePrivacyRiskScore: ", basePrivacyRiskScore);
               // privacyRiskScore = privacyRiskScore - enterDataPrivacyScore ;
 
-              // reasonsFromComUserGraph = reasonsFromComUserGraph.replace(enterDataPrivacyReasons, "");
+              reasonsFromComUserGraph = reasonsFromComUserGraph.replace(enterDataPrivacyReasons, "");
 
               // reset enterDataPrivacyScoreSet
               chrome.storage.sync.set({
@@ -408,7 +408,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             console.log("privacyRiskScore: ", privacyRiskScore);
             
             //privacyRiskScore += privacyRiskScoreFromComUserGraph;
-            //reasons += reasonsFromComUserGraph
+            reasons += reasonsFromComUserGraph
             
             // store entered privacy score and reasons for that privacy score
             // chrome.storage.sync.set({
