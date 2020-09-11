@@ -30,11 +30,12 @@ website's age and website's category are major factors to be used to
 assess the privacy risk to the user.
 
 The code in this repository has two folders
- Plugin: This folder has a Google chrome extension software code which is
-written in the JavaScript programming language. (client)
- Backend: This folder has 
-ask-based backend software code which is written
-in the python programming language. (Server)
 
-To test the approach and the developed framework, testing is done by 7 participants. Folder "Survey_feedback" has data files which consist of privacy risk score feedback by
+* Plugin: This folder has a Google chrome extension software code which is
+written in the JavaScript programming language. (client)
+
+* Backend: This folder has ask-based backend software code which is written in the python programming language. (Server)
+
+To test the approach and the developed framework, testing is done by 7 participants. 
+Folder "Survey_feedback" has data files which consist of privacy risk score feedback by
 the participants.
