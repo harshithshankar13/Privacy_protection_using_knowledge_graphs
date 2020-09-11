@@ -1,4 +1,5 @@
-# Thesis_privacy_protection
+# Personal data privacy protection using knowledge graph
+
 In this information era, data is considered as the new oil of the 21st
 century. Data is misused by organizations or countries for economic
 or political gain. The potential damage due to personal data privacy
@@ -27,3 +28,13 @@ all these data, connection with respect to their physical location and
 their history impact the most, and additionally website's web traffic,
 website's age and website's category are major factors to be used to
 assess the privacy risk to the user.
+
+The code in this repository has two folders
+ Plugin: This folder has a Google chrome extension software code which is
+written in the JavaScript programming language. (client)
+ Backend: This folder has 
+ask-based backend software code which is written
+in the python programming language. (Server)
+
+To test the approach and the developed framework, testing is done by 7 participants. Folder "Survey_feedback" has data files which consist of privacy risk score feedback by
+the participants.
